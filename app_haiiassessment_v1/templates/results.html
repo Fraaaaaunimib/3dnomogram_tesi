@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% include 'head.html' %}
+        <link rel="stylesheet" href="../static/visualizations.css">
+        <link rel="stylesheet" href="../static/metrics_css.css">
+        <script src="https://cdn.plot.ly/plotly-3.1.0.min.js"></script>
+        <title>Results | {{ constants.sitetitle }}</title>
+
+        <style>
+    .study-container {
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .plot-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .plots-wrapper {
+        display: flex;
+        flex-direction: row; 
+        justify-content: center;
+        align-items: flex-start;
+        gap: 50px;
+        width: 100%;
+    }
+
+    /* Stili per ogni singolo grafico */
+    .plot-item {
+        max-width: 500px;
+        height: 500px;
+        flex-shrink: 1;
+        flex-grow: 1;
+        flex-basis: 48%;
+    }
+
+    /* Se lo spazio non è abbastanza, allora grafici in pila */
+    @media (max-width: 1050px) {
+        .plots-wrapper {
+            flex-direction: column; /* impilati */
+            gap: 20px;
+        }
+        .plot-item {
+            width: 100%;
+            height: auto;
+            max-width: 500px;
+        }
+        .plot-controls {
+            flex-direction: column;
+            align-items: center;
+        }
+        .plot-controls h4 {
+            margin-bottom: 10px;
+            margin-right: 0;
+        }
+    }
+</style>
+
+    </head>
+
+    <body>
+        <div class="container">
+            {% include 'header.html' %}
+            <div class="row justify-content-center">
+                <div class="col-lg-12">
+                    <div class="nav nav-tabs" role="tablist">
+                        <button data-target="#interaction-metrics"
+                            class="nav-link active" role="tab"
+                            data-toggle="tab">Interaction metrics</button>
+                        <button data-target="#benefit" class="nav-link"
+                            role="tab" data-toggle="tab">Benefit
+                            Diagrams</button>
+                        <button data-target="#dominance" class="nav-link"
+                            role="tab" data-toggle="tab">Technology Impact
+                            diagram</button>
+                        <button data-target="#cog_freq" class="nav-link"
+                            role="tab" data-toggle="tab">Cognitive Impact
+                            diagrams (freq)</button>
+                        <button data-target="#cog_caus" class="nav-link"
+                            role="tab" data-toggle="tab">Cognitive Impact
+                            diagrams (caus)</button>
+                        <button data-target="#patterns" class="nav-link"
+                            role="tab" data-toggle="tab">Reliance
+                            Patterns</button>
+                        <button data-target="#paired" class="nav-link"
+                            role="tab" data-toggle="tab">Paired plot</button>
+                        <button data-target="#protocol-diagram" class="nav-link"
+                            role="tab" data-toggle="tab">Protocol
+                            diagram</button>
+
+                    </div>
+                    <div class="tab-content mb-4" id="nav-tabContent">
+                        <div id="benefit" role="tabpanel" class="tab-pane">
+                            <div class="card border-top-0 px-5 pt-5 mb-5">
+                                <h4 class="card-title mb-4">Benefit
+                                    diagrams</h4>
+                                <div
+                                    class="card-img-top gx-2 justify-content-center bg-white rounded d-flex justify-content-between">
+                                    <div class="row" style="width:100%;">
+                                        {% for filename in benefit_diagrams %}
+                                        <div class="col-md-6 text-center">
+                                            <div class="text-center">
+                                                <img
+                                                    id="zoom-img{{ loop.index }}"
+                                                    src="{{ url_for('static', filename=filename) }}"
+                                                    class="diagram mx-auto  shadow p-3 mb-5 bg-white rounded border border-secondary"
+                                                    alt="Benefit Diagram {{ loop.index }}">
+                                            </div>
+                                            <div
+                                                class=" justify-content-center mb-5">
+                                                <div class="column text-center">
+                                                    <a
+                                                        href="{{ url_for('static', filename=filename) }}"
+                                                        download="Benefit Diagram"
+                                                        class="btn btn-outline-dark">
+                                                        <i
+                                                            class="fa fa-download"></i>
+                                                        Download</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <p class>
+                                        <small>
+                                            The benefit diagrams: the dots
+                                            represent the accuracies of the
+                                            humans, and the
+                                            black lines the average
+                                            difference in accuracy between the
+                                            pre-AI and the post-AI decisions,
+                                            along with
+                                            the corresponding 95% confidence
+                                            interval. The blue region denotes an
+                                            improvement in error rates, while
+                                            the red
+                                            region denotes
+                                            a worsening.</small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="dominance" role="tabpanel" class="tab-pane">
+                            <div class="card border-top-0 px-5 pt-5 mb-5">
+                                <h4 class="card-title mb-4">Technology
+                                    Impact</h4>
+                                <div
+                                    class="card-img-top gx-2 justify-content-center bg-white rounded d-flex justify-content-between">
+                                    <div class="row">
+                                        {% for filename in dominance_diagrams %}
+                                        <div class="col-md-6 text-center">
+                                            <div class="text-center">
+                                                <img
+                                                    id="zoom-img{{ loop.index }}"
+                                                    src="{{ url_for('static', filename=filename) }}"
+                                                    class="diagram mx-auto  shadow p-3 mb-5 bg-white rounded border border-secondary"
+                                                    alt="Technology Impact Diagram {{ loop.index }}">
+                                            </div>
+                                            <div
+                                                class=" justify-content-center mb-5">
+                                                <div class="column text-center">
+                                                    <a
+                                                        href="{{ url_for('static', filename=filename) }}"
+                                                        download="Dominance Diagram"
+                                                        class="btn btn-outline-dark">
+                                                        <i
+                                                            class="fa fa-download"></i>
+                                                        Download</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <p class>
+                                        <small>
+                                            Technology Impact odd ratios for the
+                                            provided studies on a logarithmic
+                                            scale,
+                                            symmetrical with respect to the null
+                                            effect line,
+                                            spanning two orders of magnitude on
+                                            the left and six orders of magnitude
+                                            on the
+                                            right .
+                                            Horizontal lines denote 95%
+                                            confidence intervals computed
+                                            according to the
+                                            standard formula for odd ratios.
+                                            The red region denotes an overall
+                                            negative effect of the AI
+                                            intervention, while
+                                            the blue region denotes an overall
+                                            positive effect.
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="cog_freq" role="tabpanel" class="tab-pane">
+                            {% for filename in cog_impact_diagrams %}
+                            {% if loop.index0 == 0 %}
+                            <div class="card border-top-0 px-5 pt-5 mb-5">
+                                <h4 class="card-title mb-4">Automation Bias</h4>
+                                <div
+                                    class="card-img-top gx-2 justify-content-center bg-white rounded d-flex justify-content-between">
+                                    {% endif %}
+                                    {% if loop.index0 == loop.length/2 %}
+                                </div>
+                                <div class="card-body">
+                                    <p class>
+                                        <small>
+                                            Automation Bias odds ratios
+                                            displayed on a logarithmic scale,
+                                            symmetrical with
+                                            respect to the null effect line,
+                                            spanning two orders of magnitude on
+                                            the left and six orders of magnitude
+                                            on the
+                                            right
+                                        </small>
+                                    </p>
+                                </div>
+                                <h4 class="card-title mb-4">Conservatism
+                                    Bias</h4>
+                                <div
+                                    class="card-img-top gx-2 justify-content-center bg-white rounded d-flex justify-content-between">
+                                    {% endif %}
+                                    <div class="col-6">
+                                        {% if filename %}
+                                        <div class="text-center">
+                                            <img id="zoom-img{{ loop.index }}"
+                                                src="{{ url_for('static', filename=filename) }}"
+                                                class="diagram mx-auto  shadow p-3 mb-5 bg-white rounded border border-secondary"
+                                                alt="Cognitive Impact Diagram {{ loop.index }}">
+                                        </div>
+                                        <div class="justify-content-center">
+                                            <div class="column text-center">
+                                                <a
+                                                    href="{{ url_for('static', filename=filename) }}"
+                                                    download="Cognitive Impact Diagram {{ loop.index }}"
+                                                    class="btn btn-outline-dark">
+                                                    <small><i
+                                                            class="fa fa-download"></i>Download</small></a>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="text-center">
+                                            <small><i>Diagram not
+                                                    available</i></small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% if loop.last %}
+                                </div>
+                                <div class="card-body">
+                                    <p class>
+                                        <small>
+                                            Conservatism Bias odds ratios
+                                            displayed on a logarithmic scale,
+                                            symmetrical with
+                                            respect to the null effect line,
+                                            spanning two orders of magnitude on
+                                            the left and six orders of magnitude
+                                            on the
+                                            right
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div id="cog_caus" role="tabpanel" class="tab-pane">
+                            {% for filename in causal_diagrams %}
+                            {% if loop.index0 == 0 %}
+                            <div class="card border-top-0 px-5 pt-5 mb-5">
+                                <h4 class="card-title mb-4">Automation Bias</h4>
+                                <div
+                                    class="card-img-top gx-2 justify-content-center bg-white rounded d-flex justify-content-between">
+                                    {% endif %}
+                                    {% if loop.index0 == loop.length/2 %}
+                                </div>
+                                <div class="card-body">
+                                    <p class>
+                                        <small>
+                                            Automation Bias odd ratios adjusted
+                                            by type of cases (i.e., complexity)
+                                            and
+                                            displayed on a logarithmic scale,
+                                            symmetrical with respect to the null
+                                            effect
+                                            line,
+                                            spanning two orders of magnitude on
+                                            the left and six orders of magnitude
+                                            on the
+                                            right. The red region denotes the
+                                            presence of automation bias due to
+                                            the AI
+                                            intervention (i.e. negative
+                                            deference), while the blue region
+                                            denotes the
+                                            absence of automation bias and the
+                                            presence of algorithmic aversion.
+                                        </small>
+                                    </p>
+                                </div>
+                                <h4 class="card-title mb-4">Conservatism
+                                    Bias</h4>
+                                <div
+                                    class="card-img-top gx-2 justify-content-center bg-white rounded d-flex justify-content-between">
+                                    {% endif %}
+                                    <div class="col-6">
+                                        {% if filename %}
+                                        <div class="text-center">
+                                            <img id="zoom-img{{ loop.index }}"
+                                                src="{{ url_for('static', filename=filename) }}"
+                                                class="diagram mx-auto  shadow p-3 mb-5 bg-white rounded border border-secondary"
+                                                alt="Cognitive Impact Diagram {{ loop.index }}">
+                                        </div>
+                                        <div class="justify-content-center">
+                                            <div class="column text-center">
+                                                <a
+                                                    href="{{ url_for('static', filename=filename) }}"
+                                                    download="Cognitive Impact Diagram  {{ loop.index }}"
+                                                    class="btn btn-outline-dark">
+                                                    <small><i
+                                                            class="fa fa-download"></i>Download</small></a>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="text-center">
+                                            <small><i>Diagram not
+                                                    available</i></small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% if loop.last %}
+                                </div>
+                                <div class="card-body">
+                                    <p class>
+                                        <small>
+                                            Conservatism Bias odd ratios
+                                            adjusted by type of cases (i.e.,
+                                            complexity) and
+                                            displayed on a logarithmic scale,
+                                            symmetrical with respect to the null
+                                            effect
+                                            line,
+                                            spanning two orders of magnitude on
+                                            the left and six orders of magnitude
+                                            on the
+                                            right. The red region denotes the
+                                            presence of detrimental algorithmic
+                                            aversion
+                                            for the AI
+                                            intervention, while the blue region
+                                            denotes the absence of detrimental
+                                            algorithmic aversion and the
+                                            presence of algorithm appreciation
+                                            (i.e. positive
+                                            deference).
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div id="patterns" role="tabpanel" class="tab-pane">
+                            <div class="card border-top-0 px-5 pt-5 mb-5">
+                                <h4 class="card-title mb-4">Reliance
+                                    Patterns</h4>
+                                <div class="row mb-5">
+                                    {% for filename in reliance_patterns %}
+                                    <div class="col-md-6">
+                                        <div>
+                                            <h4 class="study_name">
+                                                {{ filename[1] }}
+                                            </h2>
+                                            {% include filename[0] %}
+                                        </div>
+                                        <div class="row justify-content-center">
+                                            <div class="column text-center">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    <div class="col-12">
+                                        <div class="card-body">
+                                            <p class>
+                                                <small>The reliance pattern
+                                                    table defines all potential
+                                                    decision-making and
+                                                    AI reliance patterns between
+                                                    human decision-makers and
+                                                    their AI-based
+                                                    Decision Support systems. In
+                                                    the first three columns, '0'
+                                                    indicates an
+                                                    incorrect decision and '1'
+                                                    stands for a correct
+                                                    decision. For each
+                                                    decision pattern, we
+                                                    characterize the
+                                                    decision-maker's kind of
+                                                    reliance
+                                                    toward the AI system,
+                                                    according to whether they
+                                                    accept or discard the
+                                                    AI's advice and whether this
+                                                    is right or wrong.
+                                                    Additionally, we
+                                                    identify the main cognitive
+                                                    biases associated with each
+                                                    pattern.</small>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row ">{% include
+                                    'pattern_taxonomy.html' %}</div>
+                                <div class="row"><img id="sankey_diagram"
+                                        src="{{ url_for('static', filename=sankey_diagram) }}"
+                                        style="width:1000px; height:650px;"
+                                        class="diagram mx-auto  shadow p-3 mb-5 bg-white rounded border border-secondary"
+                                        alt="Sankey Diagram"></div>
+                            </div>
+                        </div>
+
+                        <div id="paired" role="tabpanel" class="tab-pane">
+                            <div class="card border-top-0 px-5 pt-5 mb-5">
+                                <h4 class="card-title mb-4">Paired Plot</h4>
+                                <div
+                                    class="card-img-top gx-2 justify-content-center bg-white rounded d-flex justify-content-between">
+                                    <div class="row">
+                                        {% for filename in paired_plot %}
+                                        <div class="col-md-6 text-center">
+                                            <div class="text-center">
+                                                <img
+                                                    id="zoom-img{{ loop.index }}"
+                                                    src="{{ url_for('static', filename=filename) }}"
+                                                    style="width:1000px; height:auto;"
+                                                    class="diagram mx-auto  shadow p-3 mb-5 bg-white rounded border border-secondary"
+                                                    alt="Paired Plot {{ loop.index }}">
+                                            </div>
+                                            <div
+                                                class=" justify-content-center mb-5">
+                                                <div class="column text-center">
+                                                    <a
+                                                        href="{{ url_for('static', filename=filename) }}"
+                                                        download="Paired Plot"
+                                                        class="btn btn-outline-dark">
+                                                        <i
+                                                            class="fa fa-download"></i>
+                                                        Download</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <p class>
+                                        <small>
+                                            Paired plot (according to
+                                            Gardner-Altman) showing
+                                            within-subject comparisons of
+                                            the mean accuracy before and after
+                                            the participant received the
+                                            AI support (i.e. first vs. final
+                                            decision).
+                                            <br><strong>Spurred</strong> (%):
+                                            Proportion of users who have
+                                            increased their
+                                            performance while still performing
+                                            better than the AI.
+                                            <br><strong>Outperformers</strong>
+                                            (%): Proportion of users who have
+                                            increased
+                                            their performance and surpassed the
+                                            AI in accuracy.
+                                            <br><strong>Lifted</strong> (%):
+                                            Proportion of users who have
+                                            increased their
+                                            performance while still performing
+                                            worse than the AI.
+                                            <br><strong>Ballasted</strong> (%):
+                                            Proportion of users who have
+                                            decreased their
+                                            performance, despite initially
+                                            performing at least as well as the
+                                            AI and
+                                            remained better than AI.
+                                            <br><strong>Repulsed</strong> (%):
+                                            Proportion of users who have
+                                            decreased their
+                                            performance while still performing
+                                            worse than the AI.
+                                            <br><strong>Overcome</strong> (%):
+                                            Overcome (%) Proportion of users who
+                                            have
+                                            decreased their performance, despite
+                                            initially performing at least as
+                                            well as
+                                            the AI, and became worse than it.
+                                            <br><strong>Unaffected</strong> (%):
+                                            Proportion of users whose
+                                            performance has
+                                            neither improved nor decreased,
+                                            regardless of AI accuracy.
+                                            <br>
+                                            <br>Low-performers are decision
+                                            makers whose accuracy falls in the
+                                            lower
+                                            quartile of the performance score
+                                            distribution; conversely, high
+                                            performers are
+                                            those decision makers whose accuracy
+                                            is in the upper quartile of that
+                                            distribution.
+
+                                            <br>
+                                        </small>
+                                    </p>
+                                </div>
+                                <div class="row">
+                                    {% for filename in single_paired_plot %}
+                                    <div class="col-md-6 text-center">
+                                        <div class="text-center">
+                                            <img id="zoom-img{{ loop.index }}"
+                                                src="{{ url_for('static', filename=filename) }}"
+                                                style="width:1000px; height:auto;"
+                                                class="diagram mx-auto  shadow p-3 mb-5 bg-white rounded border border-secondary"
+                                                alt="Single Effect Paired Plot {{ loop.index }}">
+                                        </div>
+                                        <div
+                                            class=" justify-content-center mb-5">
+                                            <div class="column text-center">
+                                                <a
+                                                    href="{{ url_for('static', filename=filename) }}"
+                                                    download="Single Effect Paired Plot"
+                                                    class="btn btn-outline-dark">
+                                                    <i
+                                                        class="fa fa-download"></i>
+                                                    Download</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="interaction-metrics" role="tabpanel"
+                            class="tab-pane active">
+                            <div class="card border-top-0 px-5 pt-5 mb-5">
+                                <h4 class="card-title mb-4">Interaction
+                                    metrics</h4>
+                                {% for metrics in metrics_data%}
+                                <h4>{{metrics["study"]}}</h4>
+                                <div class="table-responsive"
+                                    style="margin-bottom: 30px;">
+                                    <table id="xray_metrics_table"
+                                        class="metrics_table">
+
+                                        <thead>
+                                            <tr style="text-align: right;">
+                                                <th
+                                                    style="width: 40%;">Metric</th>
+                                                <th
+                                                    style="width: 20%;">Value</th>
+                                                <th
+                                                    style="width: 40%;">Indicator</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody class="metrics_data_rows"
+                                            id="metrics_rows_{{ loop.index }}">
+                                            <tr>
+                                                <td>Dominance Strength</td>
+                                                <td>{{
+                                                    metrics["dominance strength"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Dominance Orientation</td>
+                                                <td>{{
+                                                    metrics["dominance direction"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Deference Strength</td>
+                                                <td>{{
+                                                    metrics["deference strength"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Deference Orientation</td>
+                                                <td>{{
+                                                    metrics["deference direction"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Determination Strength</td>
+                                                <td>{{
+                                                    metrics["determination strength"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Determination
+                                                    Orientation</td>
+                                                <td>{{
+                                                    metrics["determination direction"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Appropriate reliance</td>
+                                                <td>{{
+                                                    metrics["appropriate reliance"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Appropriate influence</td>
+                                                <td>{{
+                                                    metrics["appropriate influence"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>AI Effect on Decision</td>
+                                                <td>{{
+                                                    metrics["ai effect on decision"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Influence Index</td>
+                                                <td>{{
+                                                    metrics["persuasion_index"]
+                                                    }} (SD = {{
+                                                    metrics["persuasion_std"]
+                                                    }})
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Number Needed of Decisions
+                                                    (NND)</td>
+                                                <td>{{ metrics["nnd"] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Relative Positive AI
+                                                    Reliance</td>
+                                                <td>{{ metrics["rair"] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Relative Positive
+                                                    Self-Reliance</td>
+                                                <td>{{ metrics["rsr"] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Leveler Effect</td>
+                                                <td>{{ metrics["leveler"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Escalator Effect</td>
+                                                <td>{{ metrics["escalator"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Slingshot Effect</td>
+                                                <td>{{ metrics["slingshot"]
+                                                    }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Tarpit Effect</td>
+                                                <td>{{ metrics["tarpit"] }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endfor %}
+
+                                <div class="card-body">
+                                    <p class>
+                                        <small>
+                                            <strong>Dominance Strength</strong>:
+                                            The ratio of AI-induced changes to
+                                            the
+                                            total number of advice bits
+                                            provided; it's a number between 0
+                                            and 1.
+                                            <br><span class="small-br"></span>
+                                            <strong>Dominance
+                                                Orientation</strong>: The
+                                            difference between the number of
+                                            changes that lead to correct
+                                            outcomes (confidence increases) and
+                                            those that lead
+                                            to incorrect outcomes (confidence
+                                            decreases), relative to the total
+                                            number of
+                                            changes; it's a number between -1
+                                            and +1.
+                                            <br><span class="small-br"></span>
+                                            <strong>Deference Strength</strong>:
+                                            The ratio of AI-induced changes
+                                            leading to
+                                            agreement to the total number of
+                                            divergent initial decisions; it's a
+                                            number
+                                            between 0 and 1 and a sort of subset
+                                            of Dominance.
+                                            <br><span class="small-br"></span>
+                                            <strong>Deference
+                                                Orientation</strong>: The
+                                            difference between the number of
+                                            changes associated with agreement
+                                            that lead to correct outcomes
+                                            (confidence
+                                            increases) and those that lead to
+                                            incorrect outcomes (confidence
+                                            decreases),
+                                            relative to the total number of
+                                            changes; it's a number between -1
+                                            and +1.
+                                            <br><span class="small-br"></span>
+                                            <strong>Determination
+                                                Strength</strong>: The ratio of
+                                            decisions that respondents
+                                            kept to the total number of
+                                            diverging advice bits provided; it's
+                                            a number
+                                            between 0 and 1 and a sort of
+                                            complement of Deference.
+                                            <br><span class="small-br"></span>
+                                            <strong>Determination
+                                                Orientation</strong>: The
+                                            difference between the number of
+                                            decisions kept that lead to correct
+                                            outcomes (confidence increases) and
+                                            those
+                                            that lead to incorrect outcomes
+                                            (confidence decreases), relative to
+                                            the total
+                                            number of decisions kept; it's a
+                                            number between -1 and +1.
+                                            <br><span class="small-br"></span>
+                                            <strong>Appropriate
+                                                Reliance</strong>: The ratio of
+                                            the sum of beneficial trust
+                                            and distrust pattern occurrences to
+                                            the total number of advice bits
+                                            provided;
+                                            it's a measure of appropriate
+                                            reliance on AI guidance.
+                                            <br><span class="small-br"></span>
+                                            <strong>AI Effect on
+                                                Decision</strong>: The
+                                            difference between the average
+                                            accuracy (or confidence) scores of
+                                            the AI-supported and unsupported
+                                            samples, in
+                                            relation to the standard deviation
+                                            of the unsupported sample (similar
+                                            to Glass'
+                                            Delta).
+                                            <br><span class="small-br"></span>
+                                            <strong>Influence Index</strong>:
+                                            The difference between the agreement
+                                            of
+                                            post-AI human decisions with AI
+                                            decisions and the agreement of
+                                            pre-AI human
+                                            decisions with AI decisions
+                                            <br><span class="small-br"></span>
+                                            <strong>Appropriate
+                                                Influence</strong> The extent a
+                                            system's advice
+                                            appropriately influences users
+                                            beyond what would happen by random
+                                            chance
+                                            <br><span class="small-br"></span>
+                                            <strong>Number Needed of Decisions
+                                                (NND)</strong>: The number of
+                                            AI-supported
+                                            decisions required to prevent a
+                                            mistake that would have occurred
+                                            without the AI
+                                            support (or to prevent a reduction
+                                            in confidence).
+                                            <br><span class="small-br"></span>
+                                            <strong>Relative Positive AI
+                                                Reliance (RAIR)</strong>: the
+                                            ratio of cases where
+                                            the human relies on correct AI
+                                            advice, under the condition that the
+                                            initial
+                                            human decision was incorrect,
+                                            meaning the human rightfully changes
+                                            their mind to
+                                            follow the AI's suggestion (see
+                                            Schemmer et al., 2022)<br><span
+                                                class="small-br"></span>
+                                            <strong>Relative Positive
+                                                Self-Reliance (RSR)</strong>:
+                                            the ratio of cases where
+                                            the human maintains their initial
+                                            correct decision despite receiving
+                                            incorrect
+                                            AI advice. (see Schemmer et al.,
+                                            2022)<br><span
+                                                class="small-br"></span>
+                                            <strong>Leveler Effect</strong>: The
+                                            degree to which the performance (or
+                                            confidence) distribution reflects a
+                                            leveling trend, where the overall
+                                            variance
+                                            decreases and the average
+                                            performance (or confidence) of low
+                                            performers (or
+                                            those with low confidence)
+                                            increases. It's a number between 0
+                                            and 1 and an
+                                            indication of the strength of the
+                                            effect among the possible others.
+                                            <br><span class="small-br"></span>
+                                            <strong>Escalator Effect</strong>:
+                                            The extent to which the performance
+                                            (or
+                                            confidence) distribution shows an
+                                            upward trend, with the overall
+                                            median
+                                            performance (or confidence)
+                                            increasing without a corresponding
+                                            increase in
+                                            overall variance. It's a number
+                                            between 0 and 1 and an indication of
+                                            the
+                                            strength of the effect among the
+                                            possible others.
+                                            <br><span class="small-br"></span>
+                                            <strong>Slingshot Effect</strong>:
+                                            The strength of the hypothesis that
+                                            the
+                                            performance (or confidence)
+                                            distribution displays a slingshot
+                                            effect,
+                                            characterized by increased average
+                                            performance (or confidence) among
+                                            high
+                                            performers (or those with high
+                                            confidence) along with increased
+                                            overall
+                                            variance. It's a number between 0
+                                            and 1 and an indication of the
+                                            strength of the
+                                            effect among the possible others.
+                                            <br><span class="small-br"></span>
+                                            <strong>Tarpit Effect</strong>: The
+                                            strength of the hypothesis that
+                                            performance
+                                            (or confidence) does not improve.
+                                            It's a number between 0 and 1 and an
+                                            indication of the strength of the
+                                            effect among the possible others.
+                                            <br><span class="small-br"></span>
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="protocol-diagram" role="tabpanel"
+                            class="tab-pane">
+                            <div class="card border-top-0 px-5 pt-5 mb-5 pb-5">
+                                <h4 class="card-title mb-4">Protocol
+                                    diagram</h4> <!-- Titolo --> 
+                                <div
+                                    class="row justify-content-center text-center">
+                                    <div id="dynamic-plots-container"
+                                        class="card-body text-center">
+                                        <div
+                                            class="row justify-content-center text-center">
+                                            {% for study in metrics_data %} <!-- Ciclo negli studi -->
+                                            {% if protocol_diagrams|length >
+                                            loop.index0 %} <!-- Se esiste un diagramma per lo studio corrente -->
+                                            <div class="col-md-6 text-center">
+                                                <div class="text-center">
+                                                    <h4
+                                                        class="study_name">Studio
+                                                        {{ loop.index | chr(64)
+                                                        }}</h4>
+                                                    <img
+                                                        id="zoom-img-protocol{{ loop.index }}"
+                                                        src="{{ url_for('static', filename=protocol_diagrams[loop.index0]) }}"
+                                                        class="diagram mx-auto  shadow p-3 mb-5 bg-white rounded border border-secondary"
+                                                        alt="Protocol Diagram {{ loop.index }}">
+                                                </div>
+                                                <div
+                                                    class=" justify-content-center mb-5">
+                                                    <div
+                                                        class="column text-center">
+                                                        <a
+                                                            href="{{ url_for('static', filename=protocol_diagrams[loop.index0]) }}"
+                                                            download="Protocol Diagram"
+                                                            class="btn btn-outline-dark">
+                                                            <i
+                                                                class="fa fa-download"></i>
+                                                            Download</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="m_card-body">
+                                    <p>
+                                        <b>Interaction Protocols:</b><br>
+                                        <small>
+                                            <ol>
+                                                <li>
+                                                    <b>Traditional Protocol:</b>
+                                                    Human decision-makers
+                                                    receive AI advice
+                                                    concurrently with the case
+                                                    and make their decisions
+                                                    considering this
+                                                    advice.
+                                                </li>
+                                                <li>
+                                                    <b>Foreclosure Protocol:</b>
+                                                    The AI is completely removed
+                                                    from the
+                                                    decision process, and all
+                                                    decisions are made solely by
+                                                    human
+                                                    decision-makers, without any
+                                                    AI assistance.
+                                                </li>
+                                                <li>
+                                                    <b>Replacement Protocol:</b>
+                                                    The human decision-makers
+                                                    are removed from
+                                                    the process, and all
+                                                    decisions are made
+                                                    autonomously by the AI
+                                                    without
+                                                    any human collaboration.
+                                                </li>
+                                                <li>
+                                                    <b>Inhibition Protocol:</b>
+                                                    Human decision-makers first
+                                                    report their
+                                                    initial judgment, then
+                                                    consult AI advice, and
+                                                    finally make their
+                                                    definitive decision based on
+                                                    this combined input.
+                                                </li>
+                                                <li>
+                                                    <b>Displacement
+                                                        Protocol:</b> Human
+                                                    decision-makers do not
+                                                    engage
+                                                    directly with the AI.
+                                                    Instead, one human makes an
+                                                    initial decision
+                                                    unaided. The AI then either
+                                                    confirms this decision (if
+                                                    it agrees) or
+                                                    involves a second human
+                                                    decision-maker, whose
+                                                    decision is final and
+                                                    definitive.
+                                                </li>
+                                            </ol>
+                                            <p>The cross on the nomograms
+                                                indicates the region
+                                                corresponding to the optimal
+                                                protocol for achieving the
+                                                highest final accuracy,
+                                                considering the observed
+                                                appropriate reliance.</p>
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row justify-content-center mb-5">
+                            <a href="{{ url_for("choose_form") }}"
+                                class="btn btn-info ">Back</a>
+                        </div>
+                        {% include 'footer.html' %}
+                    </div>
+                    <script>
+    // --- Constants ---
+    const initialColorbar = {
+        title: 'Protocol',
+        tickvals: [1.4, 2.2, 3.0, 3.8, 4.6],
+        ticktext: ['Foreclosure', 'Replacement', 'Inhibition', 'Traditional', 'Displacement'],
+        fixedrange: true
+    };
+
+    //colorscale of both graphs
+    const colorscale = [
+        [0.0, 'rgb(2,158,37)'],
+        [0.2, 'rgb(2,158,37)'],
+        [0.2, 'rgb(255,140,0)'],
+        [0.4, 'rgb(255,140,0)'],
+        [0.4, 'rgb(0,0,0)'], //204,120,188
+        [0.6, 'rgb(0,0,0)'],
+        [0.6, 'rgb(1,115,178)'],
+        [0.8, 'rgb(1,115,178)'],
+        [0.8, 'rgb(205,0,0)'],
+        [1.0, 'rgb(205,0,0)']
+    ];
+
+    //constants for the 3D plane
+    const xPlane = [0, 0.980, 0.980, 0, 0];
+    const yPlane = [0, 0, 0.947, 0.947, 0];
+
+    //layout of the 3D graph
+    const layout3D = {
+        title: '3D Nomogram',
+        scene: {
+            xaxis: { title: 'Average Human Accuracy', range: [0, 0.980] },
+            yaxis: { title: 'AI Accuracy', range: [0, 0.947] },
+            zaxis: { title: 'Appropriate Reliance' },
+            aspectmode: 'cube',
+            camera: {
+                eye: { x: -1.2, y: -1.2, z: 1.2 }
+            }
+        },
+        margin: { l: 0, r: 0, b: 0, t: 30 }
+    };
+
+    //constant of the 2D slice
+    const layout2D = {
+        title: '2D Slice at AR = ',
+        xaxis: { title: 'Average Human Accuracy', range: [0, 0.947] },
+        yaxis: { title: 'AI Accuracy' },
+        margin: { r: 50 },
+        legend: {
+            orientation: 'h', x: 0, y: 1.1, xanchor: 'left', bgcolor: 'rgba(255,255,255,0.8)', bordercolor: 'black', borderwidth: 1
+        }
+    };
+
+    // Funzione per calcolare il protocollo basato sui parametri
+    function f(x, y, z, c) {
+        if (c === 0) {
+            c = 0.01;
+        }
+        if (z === 1) {
+            z = 0.99;
+        }
+        let values = [
+            x,
+            c * y + x * (1 - c),
+            (x * y + z * (x * (1 - y) + (1 - x) * y)) * c + x * (1 - c),
+            Math.max(z, y) * c + x * (1 - c),
+            x * (x + 2 * y - 2 * x * y) * c + x * (1 - c)
+        ];
+        return values.indexOf(Math.max(...values)) + 1;
+    }
+
+    // Funzione per generare i dati per il grafico 3D
+    function generate3DData(c) {
+        const n = 30;
+        let xVals = [], yVals = [], zVals = [], protocols = [];
+        const step = 1 / (n - 1);
+        for (let xi = 0; xi < n-1; xi++) {
+            for (let yi = 0; yi < n; yi++) {
+                for (let zi = 0; zi < n; zi++) {
+                    let x = xi * step;
+                    let y = yi * step;
+                    let z = zi * step;
+                    if (x > 0.947) x = 0.947;
+                    xVals.push(x);
+                    yVals.push(y);
+                    zVals.push(z);
+                    protocols.push(f(x, y, z, c));
+                }
+            }
+        }
+        return { x: xVals, y: yVals, z: zVals, protocol: protocols };
+    }
+    
+    // Funzione per generare i dati per il grafico 2D
+    function generate2DSlice(zFixed, c) {
+        const n = 100;
+        let xVals = [], yVals = [], zData = [];
+        const step = 1 / (n - 1);
+        for (let xi = 0; xi < n-1; xi++) {
+            xVals.push(xi * step);
+        }
+        for (let yi = 0; yi < n; yi++) {
+            yVals.push(yi * step);
+        }
+        for (let i = 0; i < n - 1; i++) {
+            let row = [];
+            for (let j = 0; j < n; j++) {
+                let x = xVals[j];
+                let y = yVals[i];
+                row.push(f(x, y, zFixed, c));
+            }
+            zData.push(row);
+        }
+        return { x: xVals, y: yVals, z: zData };
+    }
+    
+
+    // Funzione per generare le croci sui grafici 2D
+    function markers(studyIndex, colors) {
+        let studyBody = document.getElementsByClassName('dataframe')[studyIndex];
+        if (!studyBody) return [];
+        let rows = studyBody.getElementsByClassName('type_ai_percentages');
+        let markers = [];
+        for (let i = 0; i < rows.length; i++) {
+            let cells = rows[i].querySelectorAll('td');
+            if (cells.length < 4) continue;
+            let xCoordinate = parseFloat(cells[0].innerText.replace('%', '')) / 100;
+            let yCoordinate = parseFloat(cells[1].innerText.replace('%', '')) / 100;
+
+            let dynamicMarker = {
+                x: [xCoordinate],
+                y: [yCoordinate],
+                mode: 'markers',
+                marker: {
+                    color: [colors[i % colors.length]],
+                    size: 10,
+                    symbol: 'cross',
+                    line: {
+                        color: 'white',
+                        width: 1
+                    }
+                },
+                showlegend: true,
+                name: cells[3]?.textContent.trim() || 'Marker $(i+1)'
+            };
+
+            for (let j = 3; j < cells.length; j++) {
+                if (cells[j].textContent.trim().length !== 0) {
+                    dynamicMarker.name = cells[j].textContent.trim();
+                    break;
+                }
+            }
+            markers.push(dynamicMarker);
+        }
+        return markers;
+    }
+
+    // Funzione per aggiornare il grafico 3D
+    function update3DPlot(c, zSelected, targetId) {
+        const data3D = generate3DData(c);
+        let volumeTrace = {
+            x: data3D.y,
+            y: data3D.x,
+            z: data3D.z,
+            value: data3D.protocol,
+            isomin: 1,
+            isomax: 5,
+            surface_count: 5,
+            colorscale: colorscale,
+            opacity: 0.55,
+            type: 'volume',
+            showscale: false
+        };
+
+        const plane = {
+            x: xPlane,
+            y: yPlane,
+            z: [zSelected, zSelected, zSelected, zSelected, zSelected],
+            mode: 'lines',
+            line: { color: 'black', width: 4 },
+            type: 'scatter3d',
+            name: 'Slice at z = ' + zSelected.toFixed(2)
+        };
+
+        Plotly.newPlot(targetId, [volumeTrace, plane], layout3D).then(() => {
+            attachPlotClick(targetId);
+        });
+    }
+
+    // Funzione per creare il grafico 2D
+    function create2DSlice(zFixed, targetId, studyIndex) {
+        const c = 1.00;
+        const sliceData = generate2DSlice(zFixed, c);
+        const trace2D = {
+            x: sliceData.x,
+            y: sliceData.y,
+            z: sliceData.z,
+            type: 'heatmap',
+            zmin: 1, zmax: 5,
+            colorscale: colorscale,
+            colorbar: initialColorbar
+        };
+
+        layout2D.title = '2D Slice at AR = ' + zFixed.toFixed(2);
+        let plotData2D = [trace2D];
+        plotData2D = plotData2D.concat(markers(studyIndex, ['black', 'red', 'blue', 'purple']));
+
+        Plotly.react(targetId, plotData2D, layout2D).then(() => {
+            Plotly.Plots.resize(document.getElementById(targetId));
+        });
+    }
+
+    // Funzione per gestire i click sui grafici 3D
+    function attachPlotClick(containerId) {
+        document.getElementById(containerId).on('plotly_click', function(data) {
+            let zSelected = data.points[0].z;
+            let studyIndex = parseInt(containerId.split('_')[1]);
+            let sliderId = `zSlider_${studyIndex}`;
+            let valueId = `zValue_${studyIndex}`;
+            let sliceTargetId = `plot2D_${studyIndex}`;
+
+            document.getElementById(sliderId).value = zSelected;
+            document.getElementById(valueId).innerText = zSelected.toFixed(2);
+            updateNomogram3D(zSelected, containerId, sliceTargetId, studyIndex);
+        });
+    }
+
+    // Funzione unificata per aggiornare entrambi i grafici (3D e 2D)
+    function updateNomogram3D(zValue, target3DId, target2DId, studyIndex) {
+        const coverage = 1.00;
+        update3DPlot(coverage, parseFloat(zValue), target3DId);
+        create2DSlice(parseFloat(zValue), target2DId, studyIndex);
+    }
+
+    // Funzione aggiornamento da slider
+    function updateStudyPlot(zValue, studyIndex) {
+        let target3DId = `plot3D_${studyIndex}`;
+        let target2DId = `plot2D_${studyIndex}`;
+        updateNomogram3D(zValue, target3DId, target2DId, studyIndex);
+    }
+
+    // Funzione per creare gli elementi HTML per un singolo studio
+function createStudyElements(studyName, index) {
+    const container = document.getElementById('dynamic-plots-container');
+    if (!container) {
+        console.error('Contenitore dei grafici non trovato!');
+        return;
+    }
+
+    // Crea un contenitore per l'intero studio
+    const studyWrapper = document.createElement('div');
+    studyWrapper.classList.add('study-container');
+
+    // Crea un contenitore per il titolo e lo slider
+    const controlsWrapper = document.createElement('div');
+    controlsWrapper.classList.add('plot-controls');
+
+    const studyTitle = document.createElement('h4');
+    studyTitle.textContent = studyName;
+    controlsWrapper.appendChild(studyTitle);
+
+    const sliderLabel = document.createElement('label');
+    sliderLabel.classList.add('slider-label');
+    sliderLabel.htmlFor = `zSlider_${index}`;
+    sliderLabel.innerHTML = `Appropriate Reliance: <input type="range" id="zSlider_${index}" min="0" max="1" value="0.50" step="0.01" oninput="document.getElementById('zValue_${index}').innerText=parseFloat(this.value).toFixed(2); updateStudyPlot(this.value, ${index});"> <span id="zValue_${index}">0.50</span>`;
+    controlsWrapper.appendChild(sliderLabel);
+    studyWrapper.appendChild(controlsWrapper);
+
+    // Crea un wrapper per i due grafici
+    const plotsWrapper = document.createElement('div');
+    plotsWrapper.classList.add('plots-wrapper');
+    
+    const plot3D = document.createElement('div');
+    plot3D.id = `plot3D_${index}`;
+    plot3D.classList.add('plot-item');
+    
+    const plot2D = document.createElement('div');
+    plot2D.id = `plot2D_${index}`;
+    plot2D.classList.add('plot-item');
+
+    plotsWrapper.appendChild(plot3D);
+    plotsWrapper.appendChild(plot2D);
+    studyWrapper.appendChild(plotsWrapper);
+    container.appendChild(studyWrapper);
+}
+    
+    function initializePlots() {
+        const initialValue = 0.5;
+        // Ottiene i nomi degli studi dalla sezione "Interaction metrics"
+        const studyTitles = document.querySelectorAll('#interaction-metrics h4');
+        let studyNames = Array.from(studyTitles).slice(1).map(h4 => h4.textContent.trim());
+
+        let namesToUse = [];
+        if (studyNames.length === 1) {
+            // Un solo studio: usa "Protocol diagram"
+            namesToUse.push("Protocol diagram");
+        } else if (studyNames.length > 1) {
+            // Più studi: usa i nomi degli studi
+            namesToUse = studyNames;
+        } else {
+            // Nessun studio trovato: esci
+            return;
+        }
+
+        namesToUse.forEach((name, index) => {
+            createStudyElements(name, index);
+            updateStudyPlot(initialValue, index);
+        });
+    }
+-
+    $(document).ready(function(){
+        $('table.dataframe').attr('border','0');
+        $('table.dataframe *').attr('style','');
+        $('table.dataframe').addClass('table table-hover');
+        
+        reliance_tables = document.getElementsByClassName("dataframe");
+        for (var i = 0; i < reliance_tables.length; i++) {
+            var tbody = reliance_tables[i].querySelector("tbody");
+            if (tbody) {
+                var rows = tbody.getElementsByTagName("tr");
+                for (var j = 9; j < rows.length; j++) {
+                    rows[j].classList.add("type_ai_percentages");
+                }
+            }
+        }
+        
+        window.addEventListener('resize', function() {
+           
+        });
+    });
+    
+    window.addEventListener("load", function() {
+        var max = document.getElementsByClassName("metrics_table").length;
+        for (j=1; j<=max; j++) {
+            var metrics_rows = document.getElementById("metrics_rows_"+j).getElementsByTagName("tr");
+            for (var i = 0; i < metrics_rows.length; i++) {
+                var metrics_name = metrics_rows[i].getElementsByTagName("td")[0].textContent.trim();
+                var valueCell = metrics_rows[i].getElementsByTagName("td")[1].textContent.trim().split(" ")[0];
+                var value = parseFloat(valueCell);
+                var td = document.createElement("td");
+                td.classList.add("metrics_td");
+                var indicator = document.createElement("div");
+                indicator.classList.add("metrics_indicator");
+                var bar = document.createElement("div");
+                bar.classList.add("metrics_bar");
+
+                if(metrics_name === "AI Effect on Decision" || metrics_name === "Number Needed of Decisions (NND)"){
+                    bar.innerText = "-";
+                } else {
+                    indicator.style.backgroundColor = "#f3f3f3";
+                    if(value >= 0 && value <= 1){
+                        bar.style.width = (value * 100) + "%";
+                        bar.style.backgroundColor = "blue";
+                    }
+                    if(value < 0 && value >= -1){
+                        var absoluteValue = Math.abs(value);
+                        bar.style.width = (absoluteValue * 100) + "%";
+                        bar.style.backgroundColor = "#d4c606";
+                    }
+                }
+                indicator.appendChild(bar);
+                td.appendChild(indicator);
+                metrics_rows[i].appendChild(td);
+                metrics_rows[i].getElementsByTagName("td")[0].style.maxWidth = "350px";
+            }
+        }
+        
+        // Ritarda l'inizializzazione dei grafici per garantire che tutti gli elementi siano pronti
+        setTimeout(() => {
+            initializePlots();
+        }, 500);
+    });
+</script>
+                    {% include 'metatool.html' %}
+                </body>
+
+            </html>

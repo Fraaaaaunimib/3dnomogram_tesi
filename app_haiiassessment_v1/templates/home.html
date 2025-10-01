@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="google-site-verification"
+          content="g8U-UktB1WiIS4HLtzCpQrHMnqOTRZFQ3G3HWnBWRj8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  margin: 10px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  border-radius: 26px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #2196F3;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 3px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+span.text-left {
+  position: absolute;
+  left: -200%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+span.text-right {
+  position: absolute;
+  right: -200%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.labels {
+  position: absolute;
+  display: inline-block;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+    </style>
+    {% include 'head.html' %}
+    <title>Home | {{ constants.sitetitle }}</title>
+    <meta name="description"
+          content="Online tool for the assessment of the quality of Human - AI Interaction (benefit and reliance)">
+    <link rel="stylesheet" href="../static/visualizations.css">
+    <link href="{{ url_for('static', filename='css/reliability.css') }}"
+          rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      {% include 'header.html' %}
+
+
+
+      <div class="row text-center">
+        <div class="col-lg-12">
+          <form class="form-upload mb-5" action="#" method="POST" enctype="multipart/form-data">
+          <button type="button"
+                  value="submit"
+                  id="testBtn"
+                  class="btn btn-lg btn-primary btn-block">Try the tool (with predefined data)</button>
+          </form>
+
+
+          <div class="text-center mb-4">
+            <h4 class="mb-4">What is your Input Data?</h4>
+          </div>
+
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-5 col-md-6 col-sm-8 mx-auto">
+                <div id="square1" class="square" onclick="showContainer('container1','square1')">
+                  <div class="square-content">
+                    <p>Do you have the <b>reliance patterns</b>? <br><i style="font-size: 0.8rem;">These are described <a href="https://dl.acm.org/doi/full/10.1145/3544548.3581095" target="_blank">here</a> <br>(AI Shall Have No Dominion [Cabitza, F., Campagner, A., Angius, R., Natali, C., & Reverberi, C. (2023, April)]<br>(pp. 1-20)) </i></p>
+                  </div>
+                  <div class="square-button">
+                    <button class="btn btn-primary choice-button" onclick="showContainer('container1','square1')">Click here!</button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-5 col-md-6 col-sm-8 mx-auto">
+                <div id="square2" class="square" onclick="showContainer('container2','square2')">
+                  <div class="square-content">
+                    <p>Do you have a table where <b>each row represents the sequence of decisions made by each respondent on a series of cases</b>?</p>
+                  </div>
+                  <div class="square-button">
+                    <button class="btn btn-primary choice-button" onclick="showContainer('container2','square2')">Click here!</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <br>
+          <br>
+              {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                  {% for msg in messages
+                    %}
+                    <div class="alert alert-warning" role="alert">{{ msg }}</div>
+                  {% endfor %}
+                {% endif %}
+              {% endwith %}
+
+          <form class="form-upload mb-5" action="#" method="POST" enctype="multipart/form-data">
+
+            <!-- Containers -->
+            <div id="container1" class="container home-container new-container">
+              <h3>Reliance Patterns</h3>
+              <div class="text-left informative">
+                <p>
+                  To generate the diagrams and the metrics, the tool requires one mandatory <code>.csv</code> file containing the <i>case-wise reliance patterns</i> of interest.
+                </p>
+                <p>
+                  Each row must represent a single case, as supported by an AI and judged by a single decision maker, both before and after considering AI advice. Each value must be expressed in binary format: 0 to indicate that the judgment/decision was wrong (in relation to a given ground truth), 1 for a correct judgment/decision (with respect to the same ground truth).
+                  <br>The following columns must be present, and their names included as headers:
+                </p>
+                <ul>
+                  <li>
+                    <b>HD1</b>: the initial human judgment
+                  </li>
+                  <li>
+                    <b>AI</b>: the AI advice
+                  </li>
+                  <li>
+                    <b>FHD</b>: the final human decision
+                  </li>
+                </ul>
+                <p></p>
+                The file may also contain some optional columns:
+                <ul>
+                  <li>
+                    <b>id</b>: an identifier for the participant associated to the given case/judgment/decision (used only in the
+                    Benefit Diagrams);
+                  </li>
+                  <li>
+                    <b>Type_H</b>: an identifier of the role/type of the decision-maker/annotator (e.g. 'expert' or 'novice', 'student' or 'professional').  It can take any number of unique values as long as it is a string or a numeric identifier. It will be used to stratify the analysis in the Benefit Diagrams.
+                  </li>
+                  <li>
+                    <b>Type_AI</b>: an identifier of the type of AI support (e.g. with or without XAI). If present, it can have at most two unique values and will be used to stratify the analysis.
+                  </li>
+                  <li>
+                    <b>Study</b>: an identifier of the study in which the case was collected. It is used to stratify the
+                    analysis. The column can have any number of values, expressed either as a string or numeric identifier.
+                  </li>
+                  <li>
+                    <b>Complexity</b>: an identifier of case complexity used in the computation of the Causal Metrics.
+                    The column supports any number of values, expressed either as a string or numeric identifier.
+                  </li>
+                </ul>
+                <code>.csv</code> examples: <a href='{{ url_for('static', filename='testfiles/sample_data.csv') }}' target='_blank'>1</a>, <a href='{{ url_for('static', filename='testfiles/X-RAY-STUDY.csv') }}' target='_blank'>2</a>.
+                <br><br>
+              </div>
+
+
+              <div id="inputContainer1" >
+                <p class="text-right font-italic">Files marked with * are mandatory.</p>
+                <p class="text-right font-italic">Files must not contain missing values.</p>
+
+                <dt class="text-left">reliance_patterns_dataset.csv</dt>
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input" id="input1" name="input1">
+                  <label class="custom-file-label  text-left" for="custom-file-input">Select or drop here a file *</label>
+                  <small class="form-text text-muted">Select or drop here a file for the dataset *</small>
+                  <br>
+                </div>
+              </div>
+
+              <br>
+              {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                  {% for msg in messages
+                    %}
+                    <div class="alert alert-warning" role="alert">{{ msg }}</div>
+                  {% endfor %}
+                {% endif %}
+              {% endwith %}
+              <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit" value="submit_dataset">Generate results</button>
+
+
+
+
+            </div>
+            <div id="container2" class="container home-container new-container">
+              <h3>Questionnaire Responses</h3>
+              <div class="text-left informative">
+                Please provide three <code>.csv</code> files: one with multiple rows (multiline), representing the raters' responses to a set of cases, and two with only one row each (single line - in addition to the header line, which can also be blank). These two latter files should include, respectively, the <b>AI responses</b> and the "oracle" reporting the official <b>ground truth</b>.
+                <br>
+                In all these files, each row should represent a respondent (considering both the AI and the oracle as respondents, with the oracle always being correct).
+                <br>
+                For the multiline file, ensure there is a header line and either 2 (mandatory) or 4 (optional) columns per case on which the respondent expresses their decisions. The names of these columns should begin with H and FH (mandatory), indicating the initial human judgment and final human decision on the i-th case (e.g., H3, FH3). Additionally, the optional columns C and FC should indicate the initial and final confidences reported and associated by the respondents with H and FH (e.g., C3 and FC3), respectively. If you have additional information to provide, such as the complexity of cases or the stratification of cases by study or type of support, please run <a href="https://github.com/MUDILab/evaluate-human-ai-interaction/tree/main/utils" target="_blank">this script</a> on your data. Afterward, add the requested information by clicking the other button above.
+                <br><br>
+                <code>.csv</code> examples: <a href='{{ url_for('static', filename='testfiles/questresponses.csv') }}' target='_blank'>Questionnaire responses</a>, <a href='{{ url_for('static', filename='testfiles/AI.csv') }}' target='_blank'>AI responses</a>, <a href='{{ url_for('static', filename='testfiles/GROUND-TRUTH.csv') }}' target='_blank'>groundtruth</a>.
+                <br><br>
+                To generate a proper CSV file from an existing MS Excel file, try this tool: <a target='_blank' href="https://www.entechne.com/metimeter/convertitoreXLSX.html"> XLSX-CSV converter. </a>
+              </div>
+
+              <div id="inputContainer2">
+
+                <p class="text-right font-italic">Files marked with * are mandatory.</p>
+                <p class="text-right font-italic">Files must not contain missing values.</p>
+                <dt class="text-left">questionnaire_responses.csv</dt>
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input" id="input2" name="input2">
+                  <label class="custom-file-label text-left" for="custom-file-input">Select or drop here a file *</label>
+                  <small class="form-text text-muted">Select or drop here a file for the dataset *</small>
+                  <br>
+                </div>
+                <dt class="text-left">ai_responses.csv</dt>
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input" id="input3" name="input3">
+                  <label class="custom-file-label text-left" for="custom-file-input">Select or drop here a file *</label>
+                  <small class="form-text text-muted">Select or drop here a file for the AI responses *</small>
+                  <br>
+                </div>
+                <dt class="text-left">groundtruth.csv</dt>
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input" id="input4" name="input4">
+                  <label class="custom-file-label text-left" for="custom-file-input">Select or drop here a file *</label>
+                  <small class="form-text text-muted">Select or drop here a file for the ground truth *</small>
+                  <br>
+                </div>
+              </div>
+
+              <br>
+              {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                  {% for msg in messages
+                    %}
+                    <div class="alert alert-warning" role="alert">{{ msg }}</div>
+                  {% endfor %}
+                {% endif %}
+              {% endwith %}
+              <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit" value="submit_questionnaire">Generate results</button>
+
+
+
+            </div>
+
+
+
+        </div>
+
+      </form>
+    </div>
+
+
+
+
+  {% include 'footer.html' %}
+</div>
+<script>document.querySelectorAll('.custom-file-input').forEach(button => button.addEventListener('change', function (e) {
+    var fileName = e.target.files[0].name;
+    var nextSibling = e.target.nextElementSibling
+    nextSibling.innerText = fileName
+  }))
+</script>
+
+<script>
+  function showContainer(containerId, squareId) {
+
+    squares = document.getElementsByClassName("square")
+    for(i=0; i<squares.length; i++){
+      squares[i].style.background = "#ffffff";
+      squares[i].style.opacity = "0.6";
+    }
+
+    containers = document.getElementsByClassName("home-container")
+    for(i=0; i<containers.length; i++){
+      containers[i].style.display = "none";
+    }
+    document.getElementById(containerId).style.display = "block";
+    document.getElementById(squareId).style.background = "#20b0be10";
+    document.getElementById(squareId).style.opacity = "1";
+
+  }
+</script>
+
+<script>$('.form-upload').submit(function () {
+    $(':button[type=submit]').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Calculating...').addClass('disabled');
+  });
+
+  $('#testBtn').click(function () {
+    $('#testBtn').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Loading preview...').addClass('disabled');
+    // magnitude6 = $("#magnitude6").is(':checked') ? 'on' : 'off';
+    // window.location.href = '{{ url_for("test") }}?magnitude6='+magnitude6
+    window.location.href = '{{ url_for("test") }}'
+  });
+</script>
+{% include 'metatool.html' %}
+</body>
+</html>
+<!-- 5ec4355 -->

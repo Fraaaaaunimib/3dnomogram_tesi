@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="google-site-verification"
+          content="g8U-UktB1WiIS4HLtzCpQrHMnqOTRZFQ3G3HWnBWRj8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+
+    .html {
+      scroll-behavior: smooth;
+    }
+    </style>
+    {% include 'head.html' %}
+    <title>{{ constants.sitetitle }}</title>
+    <meta name="description"
+          content="Online tool for the assessment of the quality of Human - AI Interaction (benefit and reliance)">
+    <link rel="stylesheet" href="{{ url_for('static', filename='visualizations.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row text-center w-75 mx-auto">
+        <div class="col">
+          <img src="../static/icons/humanInteraction.svg" alt="haii" class="landing">
+          <h1>Human - AI Interaction Assessment</h1>
+          <h4 class="mt-5">Does AI help or hinder human decisions?</h4>
+          <p class="text-muted" style="margin-top: 1rem; margin-bottom: 3rem;">
+            This online tool supports the evaluation of <strong>Human-AI interaction</strong> in <strong>binary classification tasks</strong> by analyzing how humans rely on AI predictions and the impact of that reliance. <br>
+            By uploading your decision data, the tool generates <strong>benefit and reliance diagrams and scores</strong>, helping you understand when and how AI contributes to better decision-making. It is particularly useful for studying <strong>trust calibration, decision support systems (DSS)</strong>, and optimizing the design of <strong>human-centered AI</strong>.
+          </p>
+        </div>
+      </div>
+      
+
+
+
+      <div class="row text-center">
+        <div class="col-lg-12">
+          <div class="d-flex justify-content-center align-items-center min-vh-50">
+            <button 
+            type="button" 
+            id="uploadBtn"
+            class="btn btn-lg btn-primary px-4">
+              ENTER
+            </button>
+          </div>
+          <div class="mt-3">or</div>
+          <form class="form-upload mt-2 mb-5" action="#" method="POST" enctype="multipart/form-data">
+            <button type="button" 
+                    id="testBtn" 
+                    class="btn btn-link p-0 border-0" 
+                    style="text-decoration: underline !important; --bs-underline-opacity: 0.7;">
+              Try the tool (with predefined data)
+            </button>
+          </form>
+
+
+        </div>
+          
+
+
+      </div>
+
+
+    {% include 'footer.html' %}
+    </div>
+    <script>document.querySelectorAll('.custom-file-input').forEach(button => button.addEventListener('change', function (e) {
+        var fileName = e.target.files[0].name;
+        var nextSibling = e.target.nextElementSibling
+        nextSibling.innerText = fileName
+      }))
+    </script>
+
+    <script>
+      function showContainer(containerId, squareId) {
+
+        squares = document.getElementsByClassName("square")
+        for(i=0; i<squares.length; i++){
+          squares[i].style.background = "#ffffff";
+          squares[i].style.opacity = "0.6";
+        }
+
+        containers = document.getElementsByClassName("home-container")
+        for(i=0; i<containers.length; i++){
+          containers[i].style.display = "none";
+        }
+        document.getElementById(containerId).style.display = "block";
+        document.getElementById(squareId).style.background = "#20b0be10";
+        document.getElementById(squareId).style.opacity = "1";
+
+      }
+    </script>
+
+    <script>
+
+      $('#testBtn').click(function () {
+        $('#testBtn').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Computing... This may take about a minute').addClass('disabled');
+        // magnitude6 = $("#magnitude6").is(':checked') ? 'on' : 'off';
+        // window.location.href = '{{ url_for("test") }}?magnitude6='+magnitude6
+        window.location.href = '{{ url_for("test") }}'
+      });
+      
+
+      $('#uploadBtn').click(function () {
+        $('#uploadBtn').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Entering...').addClass('disabled');
+        
+        window.location.href = '{{ url_for("upload") }}'
+      });
+    </script>
+    {% include 'metatool.html' %}
+  </body>
+</html>
+<!-- 5ec4355 -->

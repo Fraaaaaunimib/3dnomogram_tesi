@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="google-site-verification"
+          content="g8U-UktB1WiIS4HLtzCpQrHMnqOTRZFQ3G3HWnBWRj8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  margin: 10px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  border-radius: 26px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #2196F3;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 3px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+span.text-left {
+  position: absolute;
+  left: -200%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+span.text-right {
+  position: absolute;
+  right: -200%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.labels {
+  position: absolute;
+  display: inline-block;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+    </style>
+    {% include 'head.html' %}
+    <title>{{ constants.sitetitle }}</title>
+    <meta name="description"
+          content="Online tool for the assessment of the quality of Human - AI Interaction (benefit and reliance)">
+    <link rel="stylesheet" href="{{ url_for('static', filename='visualizations.css') }}">
+  </head>
+<body>
+    
+    <div class="container">
+        {% include 'header.html' %}
+        <div class="text-center my-5">
+            <h4 class="">What is your Input Data?</h4>
+        </div>
+
+        <div class="text-center ">
+            <div class="d-flex flex-wrap justify-content-center my-5">
+                <div class="border border-dark border-5 rounded text-left d-flex flex-column justify-content-between p-4 mb-4 mx-3"  style="min-width: 300px; max-width: 500px; width: 100%;">
+                            <h5 class="fs-1 fw-bold">Reliance Pattern</h5>
+                            <i style="font-size: 0.8rem;">These are described <a href="https://dl.acm.org/doi/full/10.1145/3544548.3581095" target="_blank">here</a> <br>(AI Shall Have No Dominion [Cabitza, F., Campagner, A., Angius, R., Natali, C., & Reverberi, C. (2023, April)]<br>(pp. 1-20)) </i></p>
+                        <div class="">
+                            <button 
+                            type="button" 
+                            id="reliancePtnBtn"
+                            class="btn btn-primary choice-button">
+                            Click here!
+                            </button>
+                        </div>
+                </div>
+                <div class="border border-dark border-5 rounded text-left d-flex flex-column justify-content-between p-4 mb-4 mx-3"  style="min-width: 300px; max-width: 500px; width: 100%;">
+                  <h5 class="fs-1 fw-bold">Questionnaire Responses</h5>
+                  <p>Do you have a table where <b>each row represents the sequence of decisions made by each respondent on a series of cases</b>?</p>
+                  <div class="">
+                      <button 
+                      type="button" 
+                      id="questionnaireRespBtn"
+                      class="btn btn-primary choice-button">
+                      Click here!
+                      </button>
+                  </div>
+                </div>
+            </div>
+            
+            <div class="mt-3">or</div>
+            <form class="form-upload mt-2 mb-5" action="#" method="POST" enctype="multipart/form-data">
+                <button type="button" 
+                        id="testBtn" 
+                        class="btn btn-link p-0 border-0" 
+                        style="text-decoration: underline !important; --bs-underline-opacity: 0.7;">
+                    Try the tool (with predefined data)
+                </button>
+            </form>
+        </div>
+        <br>
+        <br>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages
+                %}
+                <div class="alert alert-warning" role="alert">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+        {% include 'footer.html' %}
+        
+</div>
+
+    <script>$('.form-upload').submit(function () {
+        $(':button[type=submit]').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Calculating...').addClass('disabled');
+    });
+
+    $('#testBtn').click(function () {
+        $('#testBtn').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Computing... This may take about a minute').addClass('disabled');
+        // magnitude6 = $("#magnitude6").is(':checked') ? 'on' : 'off';
+        // window.location.href = '{{ url_for("test") }}?magnitude6='+magnitude6
+        window.location.href = '{{ url_for("test") }}'
+    });
+
+    $('#reliancePtnBtn').click(function () {
+        $('#reliancePtnBtn').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>').addClass('disabled');
+        window.location.href = '{{ url_for("reliancePattern") }}'
+    });
+
+    $('#questionnaireRespBtn').click(function () {
+        $('#questionnaireRespBtn').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>').addClass('disabled');
+        window.location.href = '{{ url_for("questionnaireResponses") }}'
+    });
+    </script>
+    
+    {% include 'metatool.html' %}
+</body>
+</html>

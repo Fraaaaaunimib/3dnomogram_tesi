@@ -1,0 +1,233 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;400;500&display=swap');
+html,
+body {
+  /* margin: 0;
+    padding: 0; */
+  background-color: #f5f5f5;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -.2px;
+  /* padding-top: 40px; */
+}
+
+img {
+  /* width: 50%; */
+  /* object-fit:scale-down; */
+  height: auto;
+  /* transition: .5s; */
+  /* width:300px;
+    height:200px */
+  width: 500px;
+}
+
+.nav-tabs {
+  font-size: 14px;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+}
+.nav-tabs .nav-link {
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: .25rem;
+}
+.nav-tabs .nav-link.active {
+    border: 1px solid #bbb;
+    background-color: white;
+}
+
+
+.diagram {
+  max-width: 100%;
+}
+
+
+.tab-pane {
+    border-radius: .25rem;
+    border-top: 1px solid #bbb;
+}
+.tab-pane > .card {
+  border-radius: .25rem;
+  border: 1px solid #bbb;
+}
+
+.col-md-6{
+  word-wrap: break-word;
+  overflow-x: auto;
+}
+
+
+.column {
+  overflow-x: auto;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reliance-taxonomy-table th smaller {
+  font-size: inherit;
+  font-weight: normal;
+}
+
+.col-md-12{
+  word-wrap: break-word;
+  overflow-x: auto;
+}
+
+.reliance-table-responsive {
+  overflow-x: auto;
+}
+
+#protocol-diagram-container {
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+
+#zoom-img:hover {
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.9); /* Black w/ opacity */
+}
+
+.modal-content {
+  height: auto;
+  margin: auto;
+  display: block;
+  width: 80%;
+  max-width: 700px;
+}
+
+#caption {
+  margin: auto;
+  display: block;
+  width: 80%;
+  max-width: 700px;
+  text-align: center;
+  color: white;
+  padding: 20px 0;
+  height: 150px;
+}
+
+.modal-content,
+#caption {
+  -webkit-animation-name: zoom;
+  -webkit-animation-duration: 0.6s;
+  animation-name: zoom;
+  animation-duration: 0.6;
+}
+
+@-webkit-keyframes zoom {
+  from {
+    -webkit-transform: scale(0);
+  }
+  to {
+    -webkit-transform: scale(1);
+  }
+}
+
+@keyframes zoom {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+#myModal .close {
+  position: absolute;
+  top: 15px;
+  right: 35px;
+  color: #f1f1f1;
+  font-size: 40px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.close:hover,
+.close:focus {
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* 100% Image Width on Smaller Screens */
+@media only screen and (max-width: 700px) {
+  .modal-content {
+    width: 100%;
+  }
+}
+
+/* Custom styles */
+.square {
+  margin-bottom: 20px;
+  border: 2px solid transparent;
+  background: #ffffff;
+  border-color: #28a8bc;
+  box-sizing: border-box;
+  position: relative;
+  height: 0;
+  padding-top: 100%; /* Imposta l'altezza uguale alla larghezza per ottenere un quadrato */
+}
+@media screen and (min-width: 1000px) {
+  .square {
+    padding-top: 50%;
+  }
+  .square-button{
+    top: 88% !important;
+  }
+}
+
+.square:hover{
+  opacity: 1 !important;
+  cursor: pointer !important;
+  background: #ccdfff33 !important;
+  border: 3px solid transparent;
+  border-color: #28a8bc;
+}
+
+/* Stile per testo e bottone all'interno del quadrato */
+.square-content {
+  position: absolute;
+  width: 90%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.square-button {
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width:50%;
+}
+.choice-button{
+  width:100%;
+}
+
+
+#haii-generate-result{
+  display: none;
+  width: 100%;
+}
+
+.new-container {
+  display: none;
+
+}

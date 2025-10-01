@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__
+*.py[cod]
+*$py.class
+
+# Caches
+./.cache
+./.git-credential-cache
+
+# Self
+./PythonAnywhere-backup_*.tar.gz

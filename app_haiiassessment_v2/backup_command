@@ -1,0 +1,1 @@
+tar -cz -f PythonAnywhere-backup_$(date --utc '+%FT%H-%M-%SZ').tar.gz .

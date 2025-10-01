@@ -1,0 +1,9 @@
+cd /home/HAIIAssessment/mysite/static
+mkdir output1
+mkdir output2
+mkdir output3
+mkdir output4
+cd ..
+mkdir uploads
+cd templates
+mkdir user-generated

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="google-site-verification"
+          content="g8U-UktB1WiIS4HLtzCpQrHMnqOTRZFQ3G3HWnBWRj8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  margin: 10px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  border-radius: 26px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #2196F3;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 3px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+span.text-left {
+  position: absolute;
+  left: -200%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+span.text-right {
+  position: absolute;
+  right: -200%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.labels {
+  position: absolute;
+  display: inline-block;
+  top: 50%;
+  transform: translateY(-50%);
+}
+    #relianceBtn {
+      transition: all 0.3s ease;
+      --progress-width: 0%;
+      background-image: linear-gradient(
+        to right,
+        rgba(255,255,255,0.3) var(--progress-width),
+        transparent var(--progress-width)
+      );
+    }
+    #progressBar {
+      transition: width 0.3s linear;
+    }
+    .z-index-2 {
+      z-index: 2;
+    }
+
+    </style>
+    {% include 'head.html' %}
+    <title>{{ constants.sitetitle }}</title>
+    <meta name="description"
+          content="Online tool for the assessment of the quality of Human - AI Interaction (benefit and reliance)">
+    <link rel="stylesheet" href="{{ url_for('static', filename='visualizations.css') }}">
+  </head>
+<body>
+    <div class="container">
+        {% include 'header.html' %}
+        
+
+      <div id="container1" class="container ">
+        <h3 class="">Input Data: <strong>Reliance Pattern</strong></h3>
+        <h5>Already have your files ready? 
+            <button class="btn btn-link p-0 border-0" onclick="document.getElementById('uploadRp').scrollIntoView({behavior: 'smooth'});">Jump to upload &darr;</button>
+        </h5>
+        <br>
+        <form class="form-upload mb-5" action="/rp" method="POST" enctype="multipart/form-data">
+              <p>
+                  To generate the diagrams and the metrics, the tool requires: 
+              </p>
+              <h4><strong>Mandatory Input File *</strong></h4>
+              <h5>Reliance Patterns Dataset</h5>
+              <ul>
+                  <li><strong>Format:</strong> <code>.csv</code> </li>
+                  <li>
+                      <strong>Mandatory Columns *:</strong> 
+                      <ul>
+                          <li><b>HD1</b>: the initial human judgment</li>
+                          <li><b>AI</b>: the AI advice</li>
+                          <li><b>FHD</b>: the final human decision</li>
+                      </ul>
+                  </li>
+                  <li>
+                      <strong>Optional Columns:</strong> 
+                      <ul>
+                          <li><b>id</b>: an identifier for the participant associated to the given case/judgment/decision (used only in the Benefit Diagrams);</li>
+                          <li><b>Type_H</b>: an identifier of the role/type of the decision-maker/annotator (e.g. 'expert' or 'novice', 'student' or 'professional').  It can take any number of unique values as long as it is a string or a numeric identifier. It will be used to stratify the analysis in the Benefit Diagrams.</li>
+                          <li><b>Type_AI</b>: an identifier of the type of AI support (e.g. with or without XAI). If present, it can have at most two unique values and will be used to stratify the analysis.</li>
+                          <li><b>Study</b>: an identifier of the study in which the case was collected. It is used to stratify the analysis. The column can have any number of values, expressed either as a string or numeric identifier.</li>
+                          <li><b>Complexity</b>: an identifier of case complexity used in the computation of the Causal Metrics.
+                          The column supports any number of values, expressed either as a string or numeric identifier.</li>
+                      </ul>
+                  </li>
+                  <li>
+                    <strong>Row Structure:</strong> each row represents a single case involving
+                    <ol>
+                      <li>Initial human judgment</li>
+                      <li>AI advice</li>
+                      <li>Final human decision</li>
+                    </ol>
+                  </li>
+                  <li>
+                    <strong>Data Format:</strong> Binary values
+                    <ul>
+                      <li>0 = incorrect judgment/decision (relative to ground truth)</li>
+                      <li>1 = correct judgment/decision (relative to ground truth)</li>
+                    </ul>
+                  </li>
+                  <li><strong>Example files:</strong> <a href="{{ url_for('static', filename='testfiles/sample_data.csv') }}"
+  target="_blank">sample_data.csv</a>, <a href="{{ url_for('static', filename='testfiles/X-RAY-STUDY.csv') }}"
+  target="_blank">X-RAY-STUDY.csv</a></li>
+              </ul>
+              
+              <h4><strong>Notes</strong></h4>
+              <ul>
+                <li>To generate a proper CSV file from an existing MS Excel file, try this tool: <a target='_blank' href="https://www.entechne.com/metimeter/convertitoreXLSX.html"> XLSX-CSV converter. </a></li>
+                <li>
+                  <small>
+                    <p>
+                      For more
+                      details on these metrics please refer to Cabitza, F., Campagner, A., Angius, R., Natali C., Reverberi, C. (2023) AI
+                      Shall Have No Dominion: on How to Measure Technology Dominance in AI-supported Human decision-making. CHI 23:
+                      Proceedings of the 2023 CHI Conference on Human Factors in Computing Systems, April 23--28, 2023, Hamburg, Germany
+                      <br>
+                      <a href="https://doi.org/10.1145/3544548.3581095" target="_blank">https://doi.org/10.1145/3544548.3581095.</a> (Tool developed at MUDI Lab by Federico Cabitza, Chiara Natali, Riccardo Angius, Luca Carlassara, Sara Rizzi and Andrea Spreafico)</p>
+                  </small>
+                </li>
+              </ul>
+              
+
+
+              <div id="inputContainer1" >
+                <p class="text-right font-italic mt-5" id="uploadRp">Fields marked with * are mandatory.</p>
+                <p class="text-right font-italic">Files must not contain missing values.</p>
+
+                  <dt class="text-left">Reliance Pattern Dataset *</dt>
+                  <div class="custom-file">
+                      <input type="file" class="custom-file-input" id="input1" name="reliance" accept=".csv"
+                                            onchange="updateFileName(this, 'relianceLabel')">
+                      <label class="custom-file-label  text-left" id="relianceLabel" for="reliance" data-default-text="Select or drop here the .csv reliance pattern dataset file *">Select or drop here the .csv reliance pattern dataset file *</label>
+                      <br>
+                  </div>
+              </div>
+
+              <br>
+              {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                  {% for msg in messages
+                  %}
+                  <div class="alert alert-warning" role="alert">{{ msg }}</div>
+                  {% endfor %}
+              {% endif %}
+              {% endwith %}
+              <!-- <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit" value="submit_dataset">Generate results</button> -->
+              <button id="relianceBtn" class="btn btn-lg btn-primary btn-block" type="submit"
+                      name="submit"
+                      value="submit_dataset">
+                <span id="calcBtn">Generate results</span>
+                <div id="progressBar" class="progress mt-2" style="display: none; height: 5px;">
+                  <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                </div>
+              </button>
+
+          </div>
+
+        </form>
+        <div class="text-center">
+          <div class="mt-3">or</div>
+          <button type="button" 
+                  id="testRPBtn" 
+                  onclick="window.location.href = '{{ url_for("test") }}';"
+                  class="btn btn-link p-0 border-0 mt-2 mb-5" 
+                  style="text-decoration: underline !important; --bs-underline-opacity: 0.7;">
+            Try the tool (with predefined data)
+          </button>
+        </div>
+        <!-- {% include 'footer.html' %} -->
+        
+    </div>
+
+    <script>
+      $('#testRPBtn').click(function() {
+        $('#testRPBtn').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Computing... This may take about a minute').addClass('disabled');
+      });
+
+      $('.custom-file-input').forEach(input => input.addEventListener('change', function (e) {
+            var fileName = e.target.files[0].name;
+            var nextSibling = e.target.nextElementSibling
+            nextSibling.innerText = fileName
+            }))
+       
+        // Funzione per aggiornare i label
+        function updateFileName(input, labelId) {
+            const labelElement = document.getElementById(labelId);
+            
+            if (input.files && input.files.length > 0) {
+                // File was selected - show filename
+                labelElement.textContent = input.files[0].name;
+            } else {
+                // No file selected - reset to default text
+                labelElement.textContent = labelElement.getAttribute('data-default-text') || 
+                                        'Select or drop here the .csv reliance pattern dataset file *';
+            }
+        }
+    </script>
+    <script>
+    $(document).ready(function() {
+    $('.form-upload').submit(function(e) {
+      // e.preventDefault();
+      const form = this;
+      const btn = $('#relianceBtn');
+      const btnText = $('#calcBtn');
+      const progressBar = $('#progressBar');
+      
+      // 1. Validazione form
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+      }
+      
+      // 2. Prepara UI
+      // btn.prop('disabled', true)
+      //   .css('--progress-width', '0%');
+
+      btnText.html('<span class="spinner-border spinner-border-sm mr-2"></span> Processing');
+      
+      // 3. Animazione progresso
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          
+          // 4. Completamento
+          setTimeout(() => {
+            btnText.text('Calculation Complete!');
+            
+            // 5. Reset dopo 2 secondi o submit
+            // setTimeout(() => {
+            //   form.submit(); 
+            // }, 2000);
+          }, 300);
+        }
+        
+        progressBar.css('width', `${progress}%`);
+        btn.css('--progress-width', `${progress}%`);
+        
+      }, 5000);
+    });
+  });
+  </script>
+
+    
+    {% include 'metatool.html' %}
+</body>
+</html>

@@ -1,0 +1,229 @@
+import pandas as pd
+import numpy as np
+import sys
+import os
+
+def smart_read_csv(file_path, sep=','):
+    """Legge un CSV gestendo righe vuote e valori mancanti."""
+    try:
+        with open(file_path, 'r') as f:
+            first_line = f.readline().strip()
+        if any(c.isalpha() for c in first_line):
+            df = pd.read_csv(file_path, sep=sep, skiprows=1, header=None)
+        else:
+            df = pd.read_csv(file_path, sep=sep, header=None)
+        df = df.dropna(how='all')  # Rimuove righe completamente vuote
+        df = df.dropna()  # Rimuove righe con valori mancanti
+        return df
+    except Exception as e:
+        raise ValueError(f"Errore nel caricamento di {file_path}: {e}")
+
+def replicate_special_columns(df):
+    """
+    Replica 'type_AI', 'type_H' e 'Study' per ogni riga con lo stesso ID.
+    """
+    special_columns = ["type_AI", "type_H", "Study"]
+
+    for col in special_columns:
+        if col in df.columns:
+            df[col] = df[col].ffill()  # Riempie i valori mancanti con il precedente
+
+    return df
+
+def split_csv(file_path, output_dir):
+    """Divide il dataset in più CSV basati sui prefissi di colonna."""
+    df = pd.read_csv(file_path, sep=',')
+    # Rimuove righe completamente vuote
+    df = df.dropna(how='all')
+    df=replicate_special_columns(df)
+    # Identifica colonne basate sui prefissi attesi
+    risposteiniziali_cols = [col for col in df.columns if col.startswith('H')]
+    confidenzainiziale_cols = [col for col in df.columns if col.startswith('C')]
+    rispostefinali_cols = [col for col in df.columns if col.startswith('FH')]
+    confidenzafinali_cols = [col for col in df.columns if col.startswith('FC')]
+
+    # Controllo se mancano colonne attese
+    missing_columns = []
+    if not risposteiniziali_cols:
+        missing_columns.append("H (risposte iniziali)")
+    if not rispostefinali_cols:
+        missing_columns.append("FH (risposte finali)")
+    if missing_columns:
+        raise ValueError(f"ERROR: Mancano le seguenti colonne nel dataset: {', '.join(missing_columns)}")
+
+    all_relevant_cols = risposteiniziali_cols + rispostefinali_cols
+    if confidenzainiziale_cols:
+        all_relevant_cols += confidenzainiziale_cols
+    if confidenzafinali_cols:
+        all_relevant_cols+=confidenzafinali_cols
+    for col in all_relevant_cols:
+        df = df[pd.to_numeric(df[col], errors='coerce').notnull()]
+
+    df_risposte_h1 = df[risposteiniziali_cols]
+    df_risposte_fh = df[rispostefinali_cols]
+    os.makedirs(output_dir, exist_ok=True)
+    df_risposte_h1.to_csv(os.path.join(output_dir, 'h1.csv'), index=False, sep=',')
+    df_risposte_fh.to_csv(os.path.join(output_dir, 'fh.csv'), index=False, sep=',')
+
+    if confidenzainiziale_cols:
+        df_confidenza_h1 = df[confidenzainiziale_cols]
+        df_confidenza_h1.to_csv(os.path.join(output_dir, 'conf-h1.csv'), index=False, sep=',')
+
+    if confidenzafinali_cols:
+        df_confidenza_fh = df[confidenzafinali_cols]
+        df_confidenza_fh.to_csv(os.path.join(output_dir, 'conf-fh.csv'), index=False, sep=',')
+
+    print(f"split_csv executed, files saved in {output_dir}")
+
+def compare_csvs(multiline_file_path, singleline_file_path, output_file_path):
+    df_singleline = smart_read_csv(singleline_file_path, sep=',')
+    df_multiline = smart_read_csv(multiline_file_path, sep=',')
+
+    all_columns = sorted(set(df_multiline.columns).union(set(df_singleline.columns)))
+    df_multiline = df_multiline.reindex(columns=all_columns, fill_value=np.nan)
+    df_singleline = df_singleline.reindex(columns=all_columns, fill_value=np.nan)
+
+    print(f"Confronto tra: {multiline_file_path} e {singleline_file_path}")
+    print(f"Dimensioni df_multiline: {df_multiline.shape}")
+    print(f"Dimensioni df_singleline: {df_singleline.shape}")
+
+    # Rimuove eventuali spazi nei nomi delle colonne
+    df_multiline.columns = df_multiline.columns.astype(str).str.strip()
+    df_singleline.columns = df_singleline.columns.astype(str).str.strip()
+
+    # Assicurati che df_singleline abbia abbastanza righe
+    if len(df_singleline) < len(df_multiline):
+        df_singleline = pd.concat([df_singleline] * (len(df_multiline) // len(df_singleline) + 1), ignore_index=True)
+        df_singleline = df_singleline.iloc[:len(df_multiline)]
+
+    # Controlla che il numero di colonne sia identico
+    if df_multiline.shape[1] != df_singleline.shape[1]:
+        print(f"ERRORE: Il numero di colonne non corrisponde ({df_multiline.shape[1]} vs {df_singleline.shape[1]})")
+        raise ValueError("Numero di colonne diverso tra i due file CSV!")
+
+    # Rinomina le colonne per avere lo stesso nome e allinea gli indici
+    df_singleline.columns = df_multiline.columns
+    df_singleline.index = df_multiline.index
+
+    # Confronta cella per cella; le celle mancanti vengono segnate con NaN
+    empty_cells = df_multiline.isnull() | df_singleline.isnull()
+    df_comparison = (df_multiline == df_singleline).astype(int).where(~empty_cells, other=np.nan)
+
+    df_comparison.to_csv(output_file_path, index=False, sep=',')
+    print(f"Comparazione eseguita e salvata in: {output_file_path}")
+
+def create_reliances(h1_file_path, ai_file_path, fh_file_path, output_file_path, c1_file_path=None, fc_file_path=None):
+    """Crea il file di reliance a partire dai CSV processati."""
+    def safe_read(filepath, expected_cols=None):
+        try:
+            df = pd.read_csv(filepath, sep=',', skiprows=1, header=None)
+        except pd.errors.EmptyDataError:
+            raise ValueError(f"ERROR: Il file {filepath} è vuoto o non contiene dati validi.")
+
+        df = df.dropna(how='all')  # Rimuove righe completamente vuote
+        df = df.dropna()  # Rimuove righe con valori mancanti
+        df = replicate_special_columns(df)
+        if expected_cols is not None and df.shape[1] < expected_cols:
+            raise ValueError(f"ERROR: Il file {filepath} dovrebbe avere almeno {expected_cols} colonne, ma ne ha {df.shape[1]}.")
+
+        return df
+
+    # Lettura file obbligatori
+    df_h1 = safe_read(h1_file_path)
+    df_ai = safe_read(ai_file_path, expected_cols=df_h1.shape[1])
+    df_fh = safe_read(fh_file_path, expected_cols=df_h1.shape[1])
+
+    # Lettura file opzionali
+    df_c1 = None
+    df_fc = None
+    if c1_file_path is not None:
+        df_c1 = pd.read_csv(c1_file_path, sep=',', skiprows=1, header=None)
+    if fc_file_path is not None:
+        df_fc = pd.read_csv(fc_file_path, sep=',', skiprows=1, header=None)
+
+    #reading the orignal file to mantain the extra columns
+    df_original = pd.read_csv(h1_file_path, sep=',', header=0)
+
+    #verify if the special columns are present
+    extra_columns = ["Type_AI", "Type_H", "Study"]
+    for col in extra_columns:
+        if col not in df_original.columns:
+            df_original[col] = ""
+
+    # Create an empty DataFrame for the output
+    #df_reliances = pd.DataFrame(np.empty((df_h1.shape[0]*df_h1.shape[1], 6)), columns=['id','HD1', 'AI', 'FHD', "C1", "FC"]) unpredictable behavior
+    df_reliances = pd.DataFrame(np.empty((df_h1.shape[0]*df_h1.shape[1], 6)), columns=['id','HD1', 'AI', 'FHD', "C1", "FC"])
+
+    # Iterate over the rows and columns of df_h1
+    for i in range(len(df_h1)):
+        for j in range(len(df_h1.columns)):
+            # Get the corresponding values from df_h1, df_ai, and df_fh
+            df_reliances.loc[i*len(df_h1.columns) + j, "id"] = i
+            df_reliances.loc[i*len(df_h1.columns) + j, "HD1"] = df_h1.iloc[i, j]
+            df_reliances.loc[i*len(df_h1.columns) + j, "AI"] = df_ai.iloc[0, j]
+            df_reliances.loc[i*len(df_h1.columns) + j, "FHD"] = df_fh.iloc[i, j]
+
+            if df_c1 is not None:
+                try:
+                    df_reliances.loc[i*len(df_h1.columns) + j, "C1"] = df_c1.iloc[i, j]
+                except IndexError:
+                    missing_column_name = df_reliances.columns[df_reliances.columns.get_loc("C1")]  # Get the name of the column being assigned ('C1' in this case)
+                    #raise IndexError(f"Expected column '{missing_column_name}' with index {j} in '{c1_file_path}' was not found.")
+                    raise IndexError('Missing Confidence column(s) starting with "C"')
+
+            if df_fc is not None:
+                try:
+                    df_reliances.loc[i*len(df_h1.columns) + j, "FC"] = df_fc.iloc[i, j]
+                except IndexError:
+                    missing_column_name = df_reliances.columns[df_reliances.columns.get_loc("FC")]  # Get the name of the column being assigned ('FC' in this case)
+                    #raise IndexError(f"Expected column '{missing_column_name}' with index {j} in '{fc_file_path}' was not found.")
+                    raise IndexError('Missing Final Confidence column(s) starting with "FC"')
+
+    df_reliances = df_reliances.dropna()
+
+    # Controllo che tutti i valori siano numerici
+    try:
+        df_reliances = df_reliances.astype(int)
+    except ValueError as e:
+        raise ValueError(f"ERROR: Conversione in interi fallita. Alcuni valori non sono numerici. Dettaglio: {e}")
+
+    df_reliances.to_csv(output_file_path, index=False, sep=',')
+    print("create_reliances executed")
+
+def process_csv_files(basepath, filename):
+    """Esegue l'intero flusso di elaborazione CSV."""
+    responses_file = os.path.join(basepath, filename)
+    ai_file = os.path.join(basepath, "base_AI_Calibrati.csv")
+    groundtruth_file = os.path.join(basepath, "base_GT_Calibrati.csv")
+
+    # 1. Divisione file
+    split_csv(os.path.join(basepath, "base_dataset.csv"), basepath)
+
+    # 2. Confronto file
+    compare_csvs(os.path.join(basepath, 'h1.csv'), os.path.join(basepath, 'base_ai.csv'), os.path.join(basepath, 'agreementh1ai.csv'))
+    compare_csvs(os.path.join(basepath, 'h1.csv'), os.path.join(basepath, 'base_gt.csv'), os.path.join(basepath, 'accuratezze-h1.csv'))
+    compare_csvs(os.path.join(basepath, 'base_ai.csv'), os.path.join(basepath, 'base_gt.csv'), os.path.join(basepath, 'accuratezze-ai.csv'))
+    compare_csvs(os.path.join(basepath, 'fh.csv'), os.path.join(basepath, 'base_gt.csv'), os.path.join(basepath, 'accuratezze-fh.csv'))
+
+    # 3. Creazione reliance
+    output_file_path = os.path.join(basepath, 'base_dataset_reliances.csv')
+    create_reliances(
+        os.path.join(basepath, 'accuratezze-h1.csv'),
+        os.path.join(basepath, 'accuratezze-ai.csv'),
+        os.path.join(basepath, 'accuratezze-fh.csv'),
+        output_file_path,
+        os.path.join(basepath, 'conf-h1.csv') if os.path.exists(os.path.join(basepath, 'conf-h1.csv')) else None,
+        os.path.join(basepath, 'conf-fh.csv') if os.path.exists(os.path.join(basepath, 'conf-fh.csv')) else None
+    )
+
+    df = smart_read_csv(responses_file)
+    df = replicate_special_columns(df)
+    special_columns = ["Type_AI", "Type_H", "Study"]
+    existing_specials = [col for col in special_columns if col in df.columns]
+
+    if existing_specials:
+        df = df.sort_values(by=existing_specials).reset_index(drop=True)
+
+    print("process_csv_files executed")
+    return df
+

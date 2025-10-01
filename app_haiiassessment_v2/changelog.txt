@@ -1,0 +1,11 @@
+Changes in results.html:
+
+- added div id="container" to contain all the elements of nomogramB
+- in function updatePlot(plotElement, study_body) added update3DPlot(coverage, zFixed) to update the 3D slice based on the slider, create2DSlice(zFixed) to create the 2D slice of said AR.
+- changed c constants to be based upon the coverage slider instead
+- when clicking on the 3D nomogram, it changes the AR value in the slider too
+- added build_flask.sh to build the FLask app from the PythonAnywhere backup, and run_flask.sh to run the flask app once built
+- when starting the program now, it loads the correct coverage value
+- added a new CSS class for the graphs, added resizing code so all graphs can be shown correctly
+- added AI and XAI markers on 2D slice, gotten data from updatePlot function
+- switched axis orientation

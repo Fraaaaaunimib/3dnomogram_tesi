@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="google-site-verification"
+          content="g8U-UktB1WiIS4HLtzCpQrHMnqOTRZFQ3G3HWnBWRj8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  margin: 10px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  border-radius: 26px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #2196F3;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 3px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+span.text-left {
+  position: absolute;
+  left: -200%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+span.text-right {
+  position: absolute;
+  right: -200%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.labels {
+  position: absolute;
+  display: inline-block;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+    </style>
+    {% include 'head.html' %}
+    <title>{{ constants.sitetitle }}</title>
+    <meta name="description"
+          content="Online tool for the assessment of the quality of Human - AI Interaction (benefit and reliance)">
+    <link rel="stylesheet" href="{{ url_for('static', filename='visualizations.css') }}">
+  </head>
+<body>
+    
+    <div class="container">
+        {% include 'header.html' %}
+
+      <div id="container2" class="container">
+        <h3 class="">Input Data: <strong>Questionnaire Responses</strong></h3>
+        <h5>Already have your files ready? 
+            <button class="btn btn-link p-0 border-0" onclick="document.getElementById('uploadQr').scrollIntoView({behavior: 'smooth'});">Jump to upload &darr;</button>
+        </h5>
+        <br>
+        <form class="form-upload mb-5" action="/qr" method="POST" enctype="multipart/form-data">
+              <p>
+                  To generate the diagrams and the metrics, the tool requires: 
+              </p>
+                <div class="text-left informative">
+                  <h4><strong>Mandatory Input Files *</strong></h4>
+                  <ol >
+                      <h5><li>Questionnaire Responses</li></h5>
+                      <ul>
+                          <li><strong>Format:</strong> <code>.csv</code> (multiline)</li>
+                          <li><strong>Content:</strong> Raters' responses to cases</li>
+                          <li>
+                              <strong>Mandatory Columns (per case):</strong> 
+                              <ul>
+                                <li><b>H#:</b> Initial human judgment for case # (e.g., H1, H2)</li>
+                                <li><b>FH#:</b> Final human decision for case # (e.g., FH1, FH2)</li>
+                              </ul>
+                          </li>
+                          <li>
+                              <strong>Optional Columns (per case):</strong> 
+                              <ul>
+                                <li><b>C#:</b> Initial confidence for case # (e.g., C1, C2)</li>
+                                <li><b>FC#:</b> Final confidence for case # (e.g., FC1, FC2)</li>
+                              </ul>
+                          </li>
+                          <li>
+                            <strong>Structure:</strong>
+                            <ul>
+                              <li>Each row respondent</li>
+                              <li>Header line required</li>
+                            </ul>
+                          </li>
+                          <li><strong>Example file:</strong> <a href="{{ url_for('static', filename='testfiles/questresponses.csv') }}"
+          target="_blank">questresponses.csv</a></li>
+                      </ul>
+                      <h5><li>AI responses</li></h5>
+                      <ul>
+                          <li><strong>Format:</strong> <code>.csv</code> (single line + header)</li>
+                          <li><strong>Content:</strong> AI's responses to all cases</li>
+                          <li>
+                            <strong>Structure:</strong>
+                            <ul>
+                              <li>Single row representing AI as respondent</li>
+                              <li>Header line required</li>
+                            </ul>
+                          </li>
+                          <li><strong>Example file:</strong> <a href="{{ url_for('static', filename='testfiles/AI.csv') }}"
+                        target="_blank">AI.csv</a></li>
+                      </ul>
+                      <h5><li>Ground Truth</li></h5>
+                      <ul>
+                          <li><strong>Format:</strong> <code>.csv</code> (single line + header)</li>
+                          <li><strong>Content:</strong> Official correct answers</li>
+                          <li>
+                            <strong>Structure:</strong>
+                            <ul>
+                              <li>Single row representing Oracle<sup><button class="btn btn-link p-0 border-0" style="line-height: 0.8; vertical-align: top;" data-toggle="tooltip" title="refers to a single row in the Ground Truth file that contains the official correct answers."> <i class="fas fa-info-circle text-muted" style="font-size: 0.7em;"></i> </button> </sup></li>
+                              <li>Always correct responses</li>
+                            </ul>
+                          </li>
+                          <li><strong>Example file:</strong> <a href="{{ url_for('static', filename='testfiles/GROUND-TRUTH.csv') }}"
+                        target="_blank">GROUND-TRUTH.csv</a></li>
+                      </ul>
+                  </ol>
+                  <h4><strong>Notes</strong></h4>
+                  <ul>
+                    <li>All files must use consistent case numbering</li>
+                    <li>Header line required (can be blank for single-line files)</li>
+                    <li>AI and Oracle files must contain exactly one data row</li>
+                    <li>If you have additional information to provide, such as the complexity of cases or the stratification of cases by study or type of support, please run <a href="https://github.com/MUDILab/evaluate-human-ai-interaction/tree/main/utils" target="_blank">this script</a> on your data. Afterward, add the requested information by clicking the other button above.</li>
+                    <li>To generate a proper CSV file from an existing MS Excel file, try this tool: <a target='_blank' href="https://www.entechne.com/metimeter/convertitoreXLSX.html"> XLSX-CSV converter. </a></li>
+                    <li>
+                      <small>
+                        <p>
+                          For more
+                          details on these metrics please refer to Cabitza, F., Campagner, A., Angius, R., Natali C., Reverberi, C. (2023) AI
+                          Shall Have No Dominion: on How to Measure Technology Dominance in AI-supported Human decision-making. CHI 23:
+                          Proceedings of the 2023 CHI Conference on Human Factors in Computing Systems, April 23--28, 2023, Hamburg, Germany
+                          <br>
+                          <a href="https://doi.org/10.1145/3544548.3581095" target="_blank">https://doi.org/10.1145/3544548.3581095.</a> (Tool developed at MUDI Lab by Federico Cabitza, Chiara Natali, Riccardo Angius, Luca Carlassara, Sara Rizzi and Andrea Spreafico)</p>
+                      </small>
+                    </li>
+                  </ul>                
+                <br><br>
+                
+                </div>
+
+                <div id="inputContainer2">
+
+                  <p class="text-right font-italic mt-5" id="uploadQr">Fields marked with * are mandatory.</p>
+                  <p class="text-right font-italic mb-2">Files must not contain missing values.</p>
+                  
+                  <dt class="text-left">Questionnaire Responses *</dt>
+                  <div class="custom-file">
+                      <input type="file" class="custom-file-input" id="input2" name="qr1" accept=".csv"
+                                            onchange="updateFileName(this, 'qr1Label')">
+                      <label class="custom-file-label text-left" id="qr1Label" for="qr1" data-default-text="Select or drop here the .csv Questionnaire Responses file *">Select or drop here the .csv Questionnaire Responses file *</label>
+                      <br>
+                  </div>
+                  <br>
+                  <br>
+                  <dt class="text-left">AI Responses *</dt>
+                  <div class="custom-file">
+                      <input type="file" class="custom-file-input" id="input3"  name="qr2" accept=".csv"
+                                            onchange="updateFileName(this, 'qr2Label')">
+                      <label class="custom-file-label text-left" id="qr2Label" for="qr2" data-default-text="Select or drop here the .csv AI Responses file *">Select or drop here the .csv AI Responses file *</label>
+                      <br>
+                  </div>
+                  <br>
+                  <br>
+                  <dt class="text-left">Ground Truth *</dt>
+                  <div class="custom-file">
+                      <input type="file" class="custom-file-input" id="input4"  name="qr3" accept=".csv"
+                                            onchange="updateFileName(this, 'qr3Label')">
+                      <label class="custom-file-label text-left" id="qr3Label" for="qr3" data-default-text="Select or drop here the .csv Ground Truth file *">Select or drop here the .csv Ground Truth file *</label>
+                      <br>
+                  </div>
+                </div>
+
+                <br>
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for msg in messages
+                    %}
+                    <div class="alert alert-warning" role="alert">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+                <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit" value="submit_questionnaire">Generate results</button>
+
+
+
+            </div>
+        </form>
+        <div class="text-center">
+          <div class="mt-3">or</div>
+          <button type="button" 
+                  id="testQRBtn" 
+                  onclick="window.location.href = '{{ url_for("test") }}';"
+                  class="btn btn-link p-0 border-0 mt-2 mb-5" 
+                  style="text-decoration: underline !important; --bs-underline-opacity: 0.7;">
+            Try the tool (with predefined data)
+          </button>
+        </div>
+        <!-- {% include 'footer.html' %} -->
+        
+</div>
+
+    <script>
+      $('#testQRBtn').click(function() {
+        $('#testQRBtn').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Computing... This may take about a minute').addClass('disabled');
+      });
+
+      $('.custom-file-input').forEach(input => input.addEventListener('change', function (e) {
+            var fileName = e.target.files[0].name;
+            var nextSibling = e.target.nextElementSibling
+            nextSibling.innerText = fileName
+            }))
+
+
+            
+        function updateFileName(input, labelId) {
+            const labelElement = document.getElementById(labelId);
+            
+            if (input.files && input.files.length > 0) {
+                // File selezionato
+                labelElement.textContent = input.files[0].name;
+            } else {
+                // Nessun file selezionato
+                labelElement.textContent = labelElement.getAttribute('data-default-text') || 
+                                        'Select or drop here the .csv file *';
+            }
+        }
+    </script>
+    
+    {% include 'metatool.html' %}
+</body>
+</html>
