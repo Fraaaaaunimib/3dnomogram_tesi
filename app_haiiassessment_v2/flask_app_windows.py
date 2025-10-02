@@ -45,24 +45,15 @@ from single_paired import single_paired
 import io
 import logging
 
-# Creiamo un file di log personalizzato
-# Old Linux-style path (problematic on Windows):
-# logging.basicConfig(filename='/home/HAIIAssessment/mysite/error.log', level=logging.DEBUG)
-
-# New Windows-compatible version:
-log_dir = os.path.join("HAIIAssessment", "mysite")
-os.makedirs(log_dir, exist_ok=True)  # Creates directory if needed
+log_dir = os.path.dirname(os.path.abspath(__file__))
 log_file = os.path.join(log_dir, "error.log")
 logging.basicConfig(filename=log_file, level=logging.DEBUG)
 
-# Aggiungiamo una riga per confermare che il logging funziona
 logging.debug("App Flask avviata")
-# end of WIP
 
-path = os.getcwd()
-UPLOAD_FOLDER = os.path.join(path, 'uploads')
+UPLOAD_FOLDER = os.path.join(log_dir, 'uploads')
 ALLOWED_FILES = {'csv'}
-TEST_FOLDER = os.path.join(path, 'testfiles/')
+TEST_FOLDER = os.path.join(log_dir, 'testfiles/')
 
 app = Flask(__name__)
 print("app")
@@ -84,23 +75,9 @@ def allowed_file(filename):
         filename.rsplit('.', 1)[1].lower() in ALLOWED_FILES
 
 
-@app.route("/qr", methods=['POST', 'GET'])
-@app.route("/rp", methods=['POST', 'GET'])
 @app.route("/", methods=['POST', 'GET'])
 def choose_form(test=False):
-    # Windows-compatible alternative to running clean.sh
-    if os.path.exists("clean.bat"):
-    #     subprocess.Popen(["clean.bat"], shell=True)
-    # elif os.path.exists("clean.sh"):
-    #     # For Windows Subsystem for Linux (WSL) users
-    #     subprocess.Popen(["wsl", "./clean.sh"])
-        try:
-            # Make sure the script has execute permissions
-            os.chmod("clean.sh", 0o755)
-            # Run directly (no WSL needed in Docker)
-            subprocess.Popen(["/bin/bash", "./clean.sh"])
-        except Exception as e:
-            logging.error(f"Clean script failed: {e}")
+    subprocess.Popen(["clean.bat"], shell=True)
 
     # for key, value in request.form.items():
     #     print(f"{key}: {value}")
@@ -110,16 +87,16 @@ def choose_form(test=False):
 
         if request.form.get('submit', False) == 'submit_dataset':
 
-            input_data = request.files['reliance']
+            input_data = request.files['input1']
             #sep = ','
 
             if input_data.filename == '':
                 flash("Input file is necessary", category='warning')
-                return render_template('upload.html')
+                return render_template('home.html')
 
             if not allowed_file(input_data.filename):
                 flash("Input file needs .csv extension", category='danger')
-                return render_template('upload.html')
+                return render_template('home.html')
             # WORK IN PROGRESS
             current_file = input_data
             file_content = io.StringIO(current_file.stream.read().decode('utf-8'))
@@ -145,16 +122,16 @@ def choose_form(test=False):
             #    sep = ','
         if request.form.get('submit', False) == 'submit_questionnaire':
             uuiddir = str(uuid.uuid4())
-            dataset = request.files['qr1']
-            ai_response = request.files['qr2']
-            groundtruth = request.files['qr3']
+            dataset = request.files['input2']
+            ai_response = request.files['input3']
+            groundtruth = request.files['input4']
 
             if dataset.filename == '' or ai_response.filename == '' or groundtruth.filename == '':
                 flash("Input files are necessary", category='warning')
-                return render_template('upload.html')
+                return render_template('home.html')
             if not allowed_file(dataset.filename) or not allowed_file(ai_response.filename) or not allowed_file(groundtruth.filename):
                 flash("Input files needs .csv extension", category='danger')
-                return render_template('upload.html')
+                return render_template('home.html')
 
             quest_path_dir = "./uploads/" + uuiddir
 
@@ -203,10 +180,10 @@ def choose_form(test=False):
                 process_csv_files(quest_path_dir, "base_dataset.csv")
             except ValueError as e:
                 flash(str(e), category='danger')
-                return render_template('upload.html')
+                return render_template('home.html')
             except Exception as e:
                 flash("Errore imprevisto: " + str(e), category='danger')
-                return render_template('upload.html')
+                return render_template('home.html')
 
 
                 # Percorso dell'output generato dallo script
@@ -221,12 +198,12 @@ def choose_form(test=False):
             for col in required_columns:
                 if col not in data.columns:
                     flash(f"Mandatory field {col} is missing", category='danger')
-                    return render_template('upload.html')
+                    return render_template('home.html')
 
             missing_values = data.isna().sum().sum()
             if (missing_values > 0):
                 flash("The uplodaded file has one or more missing values.", category='danger')
-                return render_template('upload.html')
+                return render_template('home.html')
             if "Type_AI" not in data.columns:
                 data["Type_AI"] = "Support"
             if "Study" not in data.columns:
@@ -241,7 +218,7 @@ def choose_form(test=False):
         except Exception as e:
             print(f"Error detected: {e}")
             flash("Unable to read input data, incorrect format in CSV files. Please check and try again.", category='danger')
-            return render_template('upload.html')
+            return render_template('home.html')
 
         return render(data)
 
@@ -347,28 +324,10 @@ def render(data):
 
 @app.route('/test')
 def test():
-    try:
-        return choose_form(test=True)
-    finally:
-        # Ensure cleanup happens even if there's an error
-        plt.close('all')
-        import gc
-        gc.collect()  # Force garbage collection
-    
-@app.route('/upload')
+    return choose_form(test=True)
+
+@app.route("/upload")
 def upload():
-    return render_template('upload.html')
-
-@app.route('/reliancePattern')
-def reliancePattern():
-    return render_template('./inputs/reliancePattern.html')
-
-@app.route('/questionnaireResponses')
-def questionnaireResponses():
-    return render_template('./inputs/questionnaireResponses.html')
-
-@app.route("/deploy")
-def deploy():
     output = subprocess.check_output('./lib/deploy.sh', stderr=subprocess.STDOUT).replace(b'\n', b'<br />')
 
     return output
